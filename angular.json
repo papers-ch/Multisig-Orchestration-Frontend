@@ -31,7 +31,10 @@
               "libsodium-wrappers",
               "bs58check",
               "qrcode-generator",
-              "axios"
+              "axios",
+              "stream",
+              "path",
+              "crypto"
             ]
           },
           "configurations": {

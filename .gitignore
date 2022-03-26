@@ -30,8 +30,7 @@ www/
 $RECYCLE.BIN/
 e2e-reports/*
 
-airgap_cordova_secure_storage_deploy
-airgap_cordova_secure_storage_deploy.pub
+/.angular/cache
 
 .DS_Store
 Thumbs.db
@@ -46,10 +45,11 @@ reports/
 
 lintReport.json
 
+.pnp.*
 .yarn/*
-!.yarn/cache
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+yarn-error.log
