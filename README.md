@@ -6,21 +6,21 @@ The backend can be found [here](https://github.com/airgap-it/tz-wrapped-backend)
 
 ## Build
 
-1. npm install
-2. npm run fix-crypto
-3. npm run build:local
+1. yarn install
+2. yarn fix-crypto
+3. yarn build:local
 
-To build for different environments just change the build command to `npm run build:dev` for development or `npm run build:prod` for production.
+To build for different environments just change the build command to `yarn build:dev` for development or `yarn build:prod` for production.
 
 ## Development server
 
-Run `npm run start:local`.
+Run `yarn start:local`.
 
-To start the development server for different environments just change the start command to `npm run start:dev` for development or `npm run start:prod` for production.
+To start the development server for different environments just change the start command to `yarn start:dev` for development or `yarn start:prod` for production.
 
 ## Running unit tests
 
-Run `npm run test`.
+Run `yarn test`.
 
 ## Configuration
 

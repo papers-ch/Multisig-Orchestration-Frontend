@@ -44,8 +44,8 @@ test:
   allow_failure: false
   stage: test
   script:
-    - docker run --name unit-$CI_COMMIT_SHA $TEST_TAG npm run test-ci
-    - docker run --name lint-$CI_COMMIT_SHA $TEST_TAG npm run lint-ci
+    - docker run --name unit-$CI_COMMIT_SHA $TEST_TAG yarn test-ci
+    - docker run --name lint-$CI_COMMIT_SHA $TEST_TAG yarn lint-ci
     - docker cp unit-$CI_COMMIT_SHA:/app/coverage/dapp-frontend/report-lcov/lcov.info lcov.info
     - docker cp lint-$CI_COMMIT_SHA:/app/lintReport.json lintReport.json
   after_script:
@@ -62,7 +62,7 @@ test:
 #   allow_failure: false
 #   stage: qa
 #   script:
-#     - docker create --name qa-$CI_PIPELINE_ID $TEST_TAG npm run sonar-scanner -- -X
+#     - docker create --name qa-$CI_PIPELINE_ID $TEST_TAG yarn sonar-scanner -- -X
 #       -Dsonar.typescript.lcov.reportPaths=lcov.info
 #       -Dsonar.typescript.tslint.reportPaths=lintReport.json
 #       -Dsonar.test.inclusions=**/*.spec.ts

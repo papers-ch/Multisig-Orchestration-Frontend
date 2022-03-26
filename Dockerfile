@@ -24,8 +24,8 @@ WORKDIR /app
 ADD package.json /app/package.json
 ADD package-lock.json /app/package-lock.json
 
-RUN npm config set unsafe-perm true
-RUN npm ci
+RUN yarn config set unsafe-perm true
+RUN yarn install --frozen-lockfile
 
 ENV NODE_ENV production
 
@@ -38,7 +38,7 @@ RUN node config/patch_crypto.js
 ARG RUN_ENV
 
 # compile to check for errors
-RUN npm run build -- --configuration=${RUN_ENV}
+RUN yarn build --configuration=${RUN_ENV}
 
 ###################################
 
