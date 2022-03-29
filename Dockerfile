@@ -23,7 +23,7 @@ WORKDIR /app
 # install dependencies
 ADD package.json yarn.lock .yarnrc.yml /app/
 ADD .yarn /app/.yarn
-# RUN yarn config set unsafe-perm true
+RUN yarn config set unsafe-perm true
 RUN yarn install --frozen-lockfile
 
 ENV NODE_ENV production
