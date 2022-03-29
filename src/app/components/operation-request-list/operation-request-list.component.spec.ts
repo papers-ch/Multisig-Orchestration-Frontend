@@ -41,7 +41,7 @@ describe('OperationRequestListComponent', () => {
     fixture = TestBed.createComponent(OperationRequestListComponent)
     component = fixture.componentInstance
     component.title = ''
-    component.kind = OperationRequestKind.MINT
+    component.kind = OperationRequestKind.OPERATION
     component.state = OperationRequestState.OPEN
     component.operationRequestList = { page: 1, total_pages: 1, results: [] }
     fixture.detectChanges()
