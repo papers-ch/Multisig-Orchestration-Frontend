@@ -1,25 +1,18 @@
 <ng-container *ngIf="operationRequest">
+  <div class="m-0">
+    <h5 *ngIf="operationRequest.lambda !== null" class="m-0">
+      <h5 class="m-0">
+        <strong>Lambda</strong>
+      </h5>
+      <textarea
+        type="text"
+        [value]="operationRequest.lambda | json"
+        [disabled]="true"
+      ></textarea>
+    </h5>
+  </div>
   <div class="row py-3 align-items-center">
     <div class="col col-md-6">
-      <h5 *ngIf="operationRequest.amount !== null" class="m-0">
-        <strong>
-          {{
-            operationRequest.amount
-              | amountConverter
-                : {
-                    decimals: (contract$ | async).decimals,
-                    symbol: (contract$ | async).symbol
-                  }
-              | async
-          }}
-        </strong>
-      </h5>
-      <ng-container *ngIf="operationRequest.target_address !== null">
-        <strong>Receiving Address</strong>
-        <p class="text-muted m-0">
-          {{ receivingAddress$ | async }}
-        </p>
-      </ng-container>
       <ng-container *ngIf="operationRequest.threshold !== null">
         <h5 class="m-0">
           <strong>Threshold</strong>
@@ -29,11 +22,11 @@
         </h5>
       </ng-container>
 
-      <ng-container *ngIf="operationRequest.proposed_keyholders !== null">
+      <ng-container *ngIf="operationRequest.proposed_signers !== null">
         <h5>
           <strong>Signers</strong>
           <p
-            *ngFor="let proposed of operationRequest.proposed_keyholders"
+            *ngFor="let proposed of operationRequest.proposed_signers"
             class="text-muted m-0"
           >
             {{
@@ -75,13 +68,13 @@
       <p class="text-right text-muted m-0">
         {{ operationRequest.created_at | date: 'HH:mm' }}
       </p>
-      <p class="text-right text-muted m-0">#{{ operationRequest.nonce }}</p>
+      <p class="text-right text-muted m-0">#{{ operationRequest.counter }}</p>
     </div>
   </div>
   <p
     class="text-muted"
     *ngIf="
-      operationRequest.nonce > (contractNonce$ | async) &&
+      operationRequest.counter > (contractCounter$ | async) &&
       operationRequest.state === 'approved' &&
       (isGatekeeper$ | async)
     "
@@ -119,7 +112,7 @@
           role="menuitem"
           *ngIf="
             operationRequest.state === 'approved' &&
-            operationRequest.nonce < (contractNonce$ | async)
+            operationRequest.counter < (contractCounter$ | async)
           "
         >
           <a class="dropdown-item">Confirm injection</a>
@@ -140,7 +133,7 @@
           *ngIf="
             !(currentUserApproved$ | async) &&
             operationRequest.state === 'open' &&
-            (isKeyholder$ | async)
+            (isSigner$ | async)
           "
           type="button"
           class="btn btn-primary btn-block"
@@ -151,7 +144,7 @@
       </div>
       <div class="col pb-1">
         <button
-          *ngIf="operationRequest.state === 'open' && (isKeyholder$ | async)"
+          *ngIf="operationRequest.state === 'open' && (isSigner$ | async)"
           type="button"
           class="btn btn-primary btn-block"
           (click)="openModal(true)"
@@ -172,9 +165,9 @@
 
     <button
       *ngIf="
-        operationRequest.nonce === (contractNonce$ | async) &&
+        operationRequest.counter === (contractCounter$ | async) &&
         operationRequest.state === 'approved' &&
-        ((isKeyholder$ | async) || (isGatekeeper$ | async))
+        ((isSigner$ | async) || (isGatekeeper$ | async))
       "
       type="button"
       class="btn btn-primary btn-block"

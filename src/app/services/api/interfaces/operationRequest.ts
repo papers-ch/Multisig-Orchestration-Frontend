@@ -1,11 +1,9 @@
-import { SignableMessageInfo } from './common'
 import { OperationApproval } from './operationApproval'
 import { User } from './user'
 
 export enum OperationRequestKind {
-  MINT = 'mint',
-  BURN = 'burn',
-  UPDATE_KEYHOLDERS = 'update_keyholders',
+  OPERATION = 'operation',
+  CHANGE_KEYS = 'change_keys',
 }
 
 export enum OperationRequestState {
@@ -20,13 +18,11 @@ export interface OperationRequest {
   updated_at: string
   user: User
   contract_id: string
-  target_address: string | null
-  amount: string | null
+  lambda: any | null
   threshold: number | null
-  proposed_keyholders: User[] | null
-  kind: string
-  chain_id: string
-  nonce: number
+  proposed_signers: User[] | null
+  kind: OperationRequestKind
+  counter: number
   state: OperationRequestState
   operation_approvals: OperationApproval[]
   operation_hash: string | null
@@ -34,10 +30,9 @@ export interface OperationRequest {
 
 export interface NewOperationRequest {
   contract_id: string
-  target_address: string | null
-  amount: string | null
+  lambda: any | null
   threshold: number | null
-  proposed_keyholders: string[] | null
-  kind: string
+  proposed_signers: string[] | null
+  kind: OperationRequestKind
   ledger_hash: string | null
 }

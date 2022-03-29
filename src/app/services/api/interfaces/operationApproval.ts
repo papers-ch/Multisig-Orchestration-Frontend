@@ -4,7 +4,7 @@ export interface OperationApproval {
   id: string
   created_at: string
   updated_at: string
-  keyholder: User
+  signer: User
   operation_request_id: string
   signature: string
 }

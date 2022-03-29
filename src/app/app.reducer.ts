@@ -22,13 +22,12 @@ import { TezosNode } from './services/api/interfaces/nodes'
 interface Busy {
   activeAccount: boolean
   balance: boolean
-  mintOperationRequests: boolean
-  burnOperationRequests: boolean
-  updateKeyholdersOperationRequests: boolean
+  operationRequests: boolean
+  changeKeysOperationRequests: boolean
   contracts: boolean
   users: boolean
   signableMessages: boolean
-  contractNonces: boolean
+  contractCounters: boolean
 }
 
 export interface State {
@@ -39,35 +38,27 @@ export interface State {
   nodes: TezosNode[] | undefined
   contracts: Contract[]
   activeContract: Contract | undefined
-  contractNonces: Map<string, number>
+  contractCounters: Map<string, number>
   users: User[]
   signableMessages: Map<string, SignableMessageInfo>
   balance: BigNumber | undefined
 
-  openMintOperationRequests: PagedResponse<OperationRequest> | undefined
-  approvedMintOperationRequests: PagedResponse<OperationRequest> | undefined
-  injectedMintOperationRequests: PagedResponse<OperationRequest> | undefined
+  openOperationRequests: PagedResponse<OperationRequest> | undefined
+  approvedOperationRequests: PagedResponse<OperationRequest> | undefined
+  injectedOperationRequests: PagedResponse<OperationRequest> | undefined
 
-  openBurnOperationRequests: PagedResponse<OperationRequest> | undefined
-  approvedBurnOperationRequests: PagedResponse<OperationRequest> | undefined
-  injectedBurnOperationRequests: PagedResponse<OperationRequest> | undefined
-
-  openUpdateKeyholdersOperationRequests:
+  openChangeKeysOperationRequests: PagedResponse<OperationRequest> | undefined
+  approvedChangeKeysOperationRequests:
     | PagedResponse<OperationRequest>
     | undefined
-  approvedUpdateKeyholdersOperationRequests:
-    | PagedResponse<OperationRequest>
-    | undefined
-  injectedUpdateKeyholdersOperationRequests:
+  injectedChangeKeysOperationRequests:
     | PagedResponse<OperationRequest>
     | undefined
 
-  redeemAddress: string | undefined
-  redeemAddressBalance: BigNumber | undefined
   alerts: ErrorDescription[] | null
 
-  keyholdersToRemove: User[]
-  keyholdersToAdd: string[]
+  signersToRemove: User[]
+  signersToAdd: string[]
   newThreshold: number | undefined
 
   busy: Busy
@@ -81,41 +72,34 @@ export const initialState: State = {
   nodes: undefined,
   contracts: [],
   activeContract: undefined,
-  contractNonces: new Map<string, number>(),
+  contractCounters: new Map<string, number>(),
   users: [],
   signableMessages: new Map<string, SignableMessageInfo>(),
   balance: undefined,
 
-  openMintOperationRequests: undefined,
-  approvedMintOperationRequests: undefined,
-  injectedMintOperationRequests: undefined,
+  openOperationRequests: undefined,
+  approvedOperationRequests: undefined,
+  injectedOperationRequests: undefined,
 
-  openBurnOperationRequests: undefined,
-  approvedBurnOperationRequests: undefined,
-  injectedBurnOperationRequests: undefined,
+  openChangeKeysOperationRequests: undefined,
+  approvedChangeKeysOperationRequests: undefined,
+  injectedChangeKeysOperationRequests: undefined,
 
-  openUpdateKeyholdersOperationRequests: undefined,
-  approvedUpdateKeyholdersOperationRequests: undefined,
-  injectedUpdateKeyholdersOperationRequests: undefined,
-
-  redeemAddress: undefined,
-  redeemAddressBalance: undefined,
   alerts: null,
 
-  keyholdersToRemove: [],
-  keyholdersToAdd: [],
+  signersToRemove: [],
+  signersToAdd: [],
   newThreshold: undefined,
 
   busy: {
     activeAccount: false,
     balance: false,
-    mintOperationRequests: false,
-    burnOperationRequests: false,
-    updateKeyholdersOperationRequests: false,
+    operationRequests: false,
+    changeKeysOperationRequests: false,
     contracts: false,
     users: false,
     signableMessages: false,
-    contractNonces: false,
+    contractCounters: false,
   },
 }
 
@@ -134,15 +118,15 @@ export const reducer = createReducer(
     users: [],
     operationApprovals: new Map<string, OperationApproval[]>(),
     signableMessages: new Map<string, SignableMessageInfo>(),
-    openMintOperationRequests: undefined,
-    approvedMintOperationRequests: undefined,
-    injectedMintOperationRequests: undefined,
+    openOperationRequests: undefined,
+    approvedOperationRequests: undefined,
+    injectedOperationRequests: undefined,
     openBurnOperationRequests: undefined,
     approvedBurnOperationRequests: undefined,
     injectedBurnOperationRequests: undefined,
-    openUpdateKeyholdersOperationRequests: undefined,
-    approvedUpdateKeyholdersOperationRequests: undefined,
-    injectedUpdateKeyholdersOperationRequests: undefined,
+    openChangeKeysOperationRequests: undefined,
+    approvedChangeKeysOperationRequests: undefined,
+    injectedChangeKeysOperationRequests: undefined,
   })),
   on(actions.updateCanSignIn, (state, { canSignIn }) => ({
     ...state,
@@ -262,159 +246,108 @@ export const reducer = createReducer(
       users: false,
     },
   })),
-  on(actions.loadBurnOperationRequests, (state) => ({
+  on(actions.loadOperationRequests, (state) => ({
     ...state,
     busy: {
       ...state.busy,
-      burnOperationRequests: true,
+      operationRequests: true,
     },
   })),
-  on(actions.loadOpenBurnOperationRequestsSucceeded, (state, { response }) => ({
+  on(actions.loadOpenOperationRequestsSucceeded, (state, { response }) => ({
     ...state,
-    openBurnOperationRequests: response,
-    busy: {
-      ...state.busy,
-      burnOperationRequests: false,
-    },
-  })),
-  on(
-    actions.loadApprovedBurnOperationRequestsSucceeded,
-    (state, { response }) => ({
-      ...state,
-      approvedBurnOperationRequests: response,
-      busy: {
-        ...state.busy,
-        burnOperationRequests: false,
-      },
-    })
-  ),
-  on(
-    actions.loadInjectedBurnOperationRequestsSucceeded,
-    (state, { response }) => ({
-      ...state,
-      injectedBurnOperationRequests: response,
-      busy: {
-        ...state.busy,
-        burnOperationRequests: false,
-      },
-    })
-  ),
-  on(actions.loadBurnOperationRequestsFailed, (state) => ({
-    ...state,
-    busy: {
-      ...state.busy,
-      burnOperationRequests: false,
-    },
-  })),
-  on(actions.loadMintOperationRequests, (state) => ({
-    ...state,
-    busy: {
-      ...state.busy,
-      mintOperationRequests: true,
-    },
-  })),
-  on(actions.loadOpenMintOperationRequestsSucceeded, (state, { response }) => ({
-    ...state,
-    openMintOperationRequests: response,
+    openOperationRequests: response,
 
     busy: {
       ...state.busy,
-      mintOperationRequests: false,
+      operationRequests: false,
     },
   })),
-  on(
-    actions.loadApprovedMintOperationRequestsSucceeded,
-    (state, { response }) => ({
-      ...state,
-      approvedMintOperationRequests: response,
-      busy: {
-        ...state.busy,
-        mintOperationRequests: false,
-      },
-    })
-  ),
-  on(
-    actions.loadInjectedMintOperationRequestsSucceeded,
-    (state, { response }) => ({
-      ...state,
-      injectedMintOperationRequests: response,
-      busy: {
-        ...state.busy,
-        mintOperationRequests: false,
-      },
-    })
-  ),
-
-  on(actions.loadMintOperationRequestsFailed, (state) => ({
+  on(actions.loadApprovedOperationRequestsSucceeded, (state, { response }) => ({
+    ...state,
+    approvedOperationRequests: response,
+    busy: {
+      ...state.busy,
+      operationRequests: false,
+    },
+  })),
+  on(actions.loadInjectedOperationRequestsSucceeded, (state, { response }) => ({
+    ...state,
+    injectedOperationRequests: response,
+    busy: {
+      ...state.busy,
+      operationRequests: false,
+    },
+  })),
+  on(actions.loadOperationRequestsFailed, (state) => ({
     ...state,
     busy: {
       ...state.busy,
-      mintOperationRequests: false,
+      operationRequests: false,
     },
   })),
-  on(actions.loadUpdateKeyholdersOperationRequests, (state) => ({
+  on(actions.loadChangeKeysOperationRequests, (state) => ({
     ...state,
     busy: {
       ...state.busy,
-      updateKeyholdersOperationRequests: true,
+      changeKeysOperationRequests: true,
     },
   })),
   on(
-    actions.loadOpenUpdateKeyholdersOperationRequestsSucceeded,
+    actions.loadOpenChangeKeysOperationRequestsSucceeded,
     (state, { response }) => ({
       ...state,
-      openUpdateKeyholdersOperationRequests: response,
+      openChangeKeysOperationRequests: response,
       busy: {
         ...state.busy,
-        updateKeyholdersOperationRequests: false,
+        changeKeysOperationRequests: false,
       },
     })
   ),
   on(
-    actions.loadApprovedUpdateKeyholdersOperationRequestsSucceeded,
+    actions.loadApprovedChangeKeysOperationRequestsSucceeded,
     (state, { response }) => ({
       ...state,
-      approvedUpdateKeyholdersOperationRequests: response,
+      approvedChangeKeysOperationRequests: response,
       busy: {
         ...state.busy,
-        updateKeyholdersOperationRequests: false,
+        changeKeysOperationRequests: false,
       },
     })
   ),
   on(
-    actions.loadInjectedUpdateKeyholdersOperationRequestsSucceeded,
+    actions.loadInjectedChangeKeysOperationRequestsSucceeded,
     (state, { response }) => ({
       ...state,
-      injectedUpdateKeyholdersOperationRequests: response,
+      injectedChangeKeysOperationRequests: response,
       busy: {
         ...state.busy,
-        updateKeyholdersOperationRequests: false,
+        changeKeysOperationRequests: false,
       },
     })
   ),
-  on(actions.loadUpdateKeyholdersOperationRequestsFailed, (state) => ({
+  on(actions.loadChangeKeysOperationRequestsFailed, (state) => ({
     ...state,
     busy: {
       ...state.busy,
-      updateKeyholdersOperationRequests: false,
+      changeKeysOperationRequests: false,
     },
   })),
-  on(actions.loadContractNonce, (state) => ({
+  on(actions.loadContractCounter, (state) => ({
     ...state,
     busy: {
       ...state.busy,
-      contractNonces: true,
+      contractCounters: true,
     },
   })),
-  on(actions.loadContractNonceSucceeded, (state, { contractId, nonce }) => {
-    const contractNonces = new Map(state.contractNonces)
-    contractNonces.set(contractId, nonce)
+  on(actions.loadContractCounterSucceeded, (state, { contractId, counter }) => {
+    const contractCounter = new Map(state.contractCounters)
+    contractCounter.set(contractId, counter)
     return {
       ...state,
-      contractNonces,
+      contractCounters: contractCounter,
       busy: {
         ...state.busy,
-        contractNonces: false,
+        contractCounters: false,
       },
     }
   }),
@@ -451,17 +384,14 @@ export const reducer = createReducer(
     ...state,
     users: [],
     activeContract: contract,
-    openMintOperationRequests: undefined,
-    approvedMintOperationRequests: undefined,
-    injectedMintOperationRequests: undefined,
-    openBurnOperationRequests: undefined,
-    approvedBurnOperationRequests: undefined,
-    injectedBurnOperationRequests: undefined,
-    openUpdateKeyholdersOperationRequests: undefined,
-    approvedUpdateKeyholdersOperationRequests: undefined,
-    injectedUpdateKeyholdersOperationRequests: undefined,
-    keyholdersToRemove: [],
-    keyholdersToAdd: [],
+    openOperationRequests: undefined,
+    approvedOperationRequests: undefined,
+    injectedOperationRequests: undefined,
+    openChangeKeysOperationRequests: undefined,
+    approvedChangeKeysOperationRequests: undefined,
+    injectedChangeKeysOperationRequests: undefined,
+    signersToRemove: [],
+    signersToAdd: [],
     busy: {
       ...state.busy,
     },
@@ -480,39 +410,39 @@ export const reducer = createReducer(
       ...state.busy,
     },
   })),
-  on(actions.updateKeyholdersToRemove, (state, { keyholder }) => {
-    const removeIndex = state.keyholdersToRemove.indexOf(keyholder)
-    const keyholdersToRemove = [...state.keyholdersToRemove]
+  on(actions.updateSignersToRemove, (state, { signer }) => {
+    const removeIndex = state.signersToRemove.indexOf(signer)
+    const toRemove = [...state.signersToRemove]
     if (removeIndex !== -1) {
-      keyholdersToRemove.splice(removeIndex, 1)
+      toRemove.splice(removeIndex, 1)
     } else {
-      keyholdersToRemove.push(keyholder)
+      toRemove.push(signer)
     }
     return {
       ...state,
-      keyholdersToRemove,
+      signersToRemove: toRemove,
     }
   }),
-  on(actions.resetKeyholdersToRemove, (state) => ({
+  on(actions.resetSignersToRemove, (state) => ({
     ...state,
-    keyholdersToRemove: [],
+    signersToRemove: [],
   })),
-  on(actions.updateKeyholdersToAdd, (state, { keyholder }) => {
-    const removeIndex = state.keyholdersToAdd.indexOf(keyholder)
-    const keyholdersToAdd = [...state.keyholdersToAdd]
+  on(actions.updateSignersToAdd, (state, { signer }) => {
+    const removeIndex = state.signersToAdd.indexOf(signer)
+    const toAdd = [...state.signersToAdd]
     if (removeIndex !== -1) {
-      keyholdersToAdd.splice(removeIndex, 1)
+      toAdd.splice(removeIndex, 1)
     } else {
-      keyholdersToAdd.push(keyholder)
+      toAdd.push(signer)
     }
     return {
       ...state,
-      keyholdersToAdd,
+      signersToAdd: toAdd,
     }
   }),
-  on(actions.resetKeyholdersToAdd, (state) => ({
+  on(actions.resetSignersToAdd, (state) => ({
     ...state,
-    keyholdersToAdd: [],
+    signersToAdd: [],
   })),
   on(actions.updateThreshold, (state, { threshold }) => ({
     ...state,
@@ -522,32 +452,16 @@ export const reducer = createReducer(
     ...state,
     newThreshold: undefined,
   })),
-  on(actions.loadRedeemAddress, (state) => ({
-    ...state,
-    redeemAddress: undefined,
-    redeemAddressBalance: undefined,
-  })),
-  on(actions.loadRedeemAddressSucceeded, (state, { address }) => ({
-    ...state,
-    redeemAddress: address,
-  })),
-  on(actions.loadRedeemAddressBalanceSucceeded, (state, { balance }) => ({
-    ...state,
-    redeemAddressBalance: balance,
-  })),
   on(actions.submitOperationRequest, (state, { newOperationRequest }) => ({
     ...state,
     busy: {
       ...state.busy,
-      mintOperationRequests:
-        newOperationRequest.kind === OperationRequestKind.MINT ||
-        state.busy.mintOperationRequests,
-      burnOperationRequests:
-        newOperationRequest.kind === OperationRequestKind.BURN ||
-        state.busy.burnOperationRequests,
-      updateKeyholdersOperationRequests:
-        newOperationRequest.kind === OperationRequestKind.UPDATE_KEYHOLDERS ||
-        state.busy.updateKeyholdersOperationRequests,
+      operationRequests:
+        newOperationRequest.kind === OperationRequestKind.OPERATION ||
+        state.busy.operationRequests,
+      changeKeysOperationRequests:
+        newOperationRequest.kind === OperationRequestKind.CHANGE_KEYS ||
+        state.busy.changeKeysOperationRequests,
     },
   })),
   on(
@@ -556,15 +470,12 @@ export const reducer = createReducer(
       ...state,
       busy: {
         ...state.busy,
-        mintOperationRequests:
-          newOperationRequest.kind !== OperationRequestKind.MINT &&
-          state.busy.mintOperationRequests,
-        burnOperationRequests:
-          newOperationRequest.kind !== OperationRequestKind.BURN &&
-          state.busy.burnOperationRequests,
-        updateKeyholdersOperationRequests:
-          newOperationRequest.kind !== OperationRequestKind.UPDATE_KEYHOLDERS &&
-          state.busy.updateKeyholdersOperationRequests,
+        operationRequests:
+          newOperationRequest.kind !== OperationRequestKind.OPERATION &&
+          state.busy.operationRequests,
+        changeKeysOperationRequests:
+          newOperationRequest.kind !== OperationRequestKind.CHANGE_KEYS &&
+          state.busy.changeKeysOperationRequests,
       },
     })
   )

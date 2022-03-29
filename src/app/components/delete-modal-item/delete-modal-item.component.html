@@ -12,14 +12,14 @@
 <div class="modal-body">
   <h5 class="mb-3">
     Are you sure you want to delete {{ operationRequest.kind }} request #{{
-      operationRequest.nonce
+      operationRequest.counter
     }}?
   </h5>
-  <ng-container *ngIf="contractNonces$ | async as contractNonces">
+  <ng-container *ngIf="contractCounters$ | async as contractCounters">
     <div
       *ngIf="
-        contractNonces.get(operationRequest.contract_id) <
-        operationRequest.nonce
+        contractCounters.get(operationRequest.contract_id) <
+        operationRequest.counter
       "
       class="alert alert-warning"
       role="alert"

@@ -22,23 +22,17 @@ import {
   getActiveAccount,
   getActiveContract,
   getAddress,
-  getApprovedBurnOperationRequests,
-  getApprovedMintOperationRequests,
+  getApprovedOperationRequests,
   getBalance,
-  getBusyBurnOperationRequests,
-  getInjectedBurnOperationRequests,
-  getInjectedMintOperationRequests,
-  getKeyholders,
-  getBusyMintOperationRequests,
-  getOpenBurnOperationRequests,
-  getOpenMintOperationRequests,
-  getRedeemAddress,
-  getRedeemAddressBalance,
+  getInjectedOperationRequests,
+  getSigners,
+  getBusyOperationRequests,
+  getOpenOperationRequests,
   getSelectedTab,
   getSessionUser,
   getUsers,
   isGatekeeper,
-  isKeyholder,
+  isSigner,
   getGatekeepers,
 } from 'src/app/app.selectors'
 import { Tab } from './tab'
@@ -60,49 +54,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   public receivingAddressControl: FormControl
   public amountTransferControl: FormControl
-  public amountBurnControl: FormControl
-  public amountControl: FormControl
+  public lambdaControl: FormControl
   public ledgerHashControl: FormControl
   public address$: Observable<string | undefined>
 
-  public openMintOperationRequests$: Observable<
+  public openOperationRequests$: Observable<
     PagedResponse<OperationRequest> | undefined
   >
-  public approvedMintOperationRequests$: Observable<
+  public approvedOperationRequests$: Observable<
     PagedResponse<OperationRequest> | undefined
   >
-  public injectedMintOperationRequests$: Observable<
-    PagedResponse<OperationRequest> | undefined
-  >
-
-  public openBurnOperationRequests$: Observable<
-    PagedResponse<OperationRequest> | undefined
-  >
-  public approvedBurnOperationRequests$: Observable<
-    PagedResponse<OperationRequest> | undefined
-  >
-  public injectedBurnOperationRequests$: Observable<
+  public injectedOperationRequests$: Observable<
     PagedResponse<OperationRequest> | undefined
   >
 
   public users$: Observable<User[]>
-  public keyholders$: Observable<User[]>
+  public signers$: Observable<User[]>
 
   public isGatekeeper$: Observable<boolean>
-  public isKeyholder$: Observable<boolean>
-  public canMint$: Observable<boolean>
-  public canBurn$: Observable<boolean>
+  public isSigner$: Observable<boolean>
   public balance$: Observable<BigNumber | undefined>
   public activeContract$: Observable<Contract>
-  public activeContractImagePath$: Observable<string>
-
-  public redeemAddress$: Observable<string | undefined>
-  public redeemAddressBalance$: Observable<BigNumber | undefined>
 
   private subscriptions: Subscription[] = []
 
-  public busyMintOpeartionRequests$: Observable<boolean>
-  public busyBurnOpeartionRequests$: Observable<boolean>
+  public busyOpeartionRequests$: Observable<boolean>
 
   public gatekeepers$: Observable<User[]>
   public formGroup: FormGroup
@@ -117,9 +93,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.activeContract$ = this.store$
       .select(getActiveContract)
       .pipe(isNotNullOrUndefined())
-    this.activeContractImagePath$ = this.activeContract$.pipe(
-      map((contract) => `assets/img/${contract.symbol.toLowerCase()}.svg`)
-    )
 
     const signInSub = signIn(this.store$)
     this.subscriptions.push(signInSub)
@@ -129,61 +102,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const contractSub = loadContractsIfNeeded(store$)
     this.subscriptions.push(contractSub)
 
-    this.openMintOperationRequests$ = this.store$.select(
-      getOpenMintOperationRequests
+    this.openOperationRequests$ = this.store$.select(getOpenOperationRequests)
+    this.approvedOperationRequests$ = this.store$.select(
+      getApprovedOperationRequests
     )
-    this.approvedMintOperationRequests$ = this.store$.select(
-      getApprovedMintOperationRequests
-    )
-    this.injectedMintOperationRequests$ = this.store$.select(
-      getInjectedMintOperationRequests
-    )
-
-    this.openBurnOperationRequests$ = this.store$.select(
-      getOpenBurnOperationRequests
-    )
-    this.approvedBurnOperationRequests$ = this.store$.select(
-      getApprovedBurnOperationRequests
-    )
-    this.injectedBurnOperationRequests$ = this.store$.select(
-      getInjectedBurnOperationRequests
+    this.injectedOperationRequests$ = this.store$.select(
+      getInjectedOperationRequests
     )
 
     this.users$ = this.store$.select(getUsers)
-    this.keyholders$ = this.store$.select(getKeyholders)
+    this.signers$ = this.store$.select(getSigners)
     this.address$ = this.store$.select(getAddress)
     this.isGatekeeper$ = this.store$.select(isGatekeeper)
-    this.isKeyholder$ = this.store$.select(isKeyholder)
-    this.canMint$ = combineLatest([
-      this.activeContract$,
-      this.store$.select(getSessionUser),
-    ]).pipe(
-      map(
-        ([contract, sessionUser]) =>
-          sessionUser !== undefined &&
-          contract.capabilities.includes(OperationRequestKind.MINT)
-      )
-    )
-    this.canBurn$ = combineLatest([
-      this.activeContract$,
-      this.store$.select(getSessionUser),
-    ]).pipe(
-      map(
-        ([contract, sessionUser]) =>
-          sessionUser !== undefined &&
-          contract.capabilities.includes(OperationRequestKind.BURN)
-      )
-    )
+    this.isSigner$ = this.store$.select(isSigner)
     this.balance$ = this.store$.select(getBalance)
-
-    this.redeemAddress$ = this.store$.select(getRedeemAddress)
-    this.redeemAddressBalance$ = this.store$.select(getRedeemAddressBalance)
-    this.busyMintOpeartionRequests$ = this.store$.select(
-      getBusyMintOperationRequests
-    )
-    this.busyBurnOpeartionRequests$ = this.store$.select(
-      getBusyBurnOperationRequests
-    )
+    this.busyOpeartionRequests$ = this.store$.select(getBusyOperationRequests)
     this.gatekeepers$ = this.store$.select(getGatekeepers)
     this.subscriptions.push(
       combineLatest([
@@ -199,8 +132,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         )
         .subscribe(([contract]) => {
           this.store$.dispatch(actions.loadUsers({ contractId: contract.id }))
-          this.store$.dispatch(actions.loadMintOperationRequests())
-          this.store$.dispatch(actions.loadBurnOperationRequests())
+          this.store$.dispatch(actions.loadOperationRequests())
         })
     )
     this.subscriptions.push(
@@ -212,28 +144,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
           filter(
             ([account, contract]) =>
               account !== undefined && contract !== undefined
-          ),
-          map(([account, contract]) => ({
-            account: account!,
-            contract: contract!,
-          }))
+          )
         )
-        .subscribe(({ account, contract }) => {
+        .subscribe(() => {
           this.store$.dispatch(actions.loadBalance())
-          this.store$.dispatch(actions.loadRedeemAddress({ contract }))
         })
-    )
-    this.subscriptions.push(
-      combineLatest([
-        this.canMint$,
-        this.canBurn$,
-        this.selectedTab$,
-      ]).subscribe(([canMint, canBurn, tab]) => {
-        if ((!canMint && tab == Tab.MINT) || (!canBurn && tab == Tab.BURN)) {
-          this.router.navigate(['/', 'transfer'])
-          this.store$.dispatch(actions.selectTab({ tab: Tab.TRANSFER }))
-        }
-      })
     )
 
     this.receivingAddressControl = new FormControl('', [
@@ -243,16 +158,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       Validators.pattern('^(tz1|tz2|tz3|KT1)[1-9A-Za-z]{33}'),
     ])
 
-    this.amountControl = new FormControl(null, [
-      Validators.min(0),
-      Validators.required,
-      Validators.pattern('^[+-]?(\\d*\\.)?\\d+$'),
-    ])
+    this.lambdaControl = new FormControl(null, [Validators.required])
 
     this.ledgerHashControl = new FormControl()
 
     this.amountTransferControl = new FormControl()
-    this.amountBurnControl = new FormControl()
 
     this.subscriptions.push(
       combineLatest([this.balance$, this.activeContract$]).subscribe(
@@ -262,40 +172,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
             Validators.max(balance?.toNumber() ?? 0),
             Validators.required,
             Validators.pattern('^[+-]?(\\d*\\.)?\\d+$'),
-            amountValidator(balance ?? new BigNumber(0), contract.decimals),
+            // TODO: get decimals from token metadata
+            amountValidator(balance ?? new BigNumber(0), 2),
           ])
           this.amountTransferControl.updateValueAndValidity()
         }
       )
     )
 
-    this.subscriptions.push(
-      combineLatest([
-        this.redeemAddressBalance$,
-        this.activeContract$,
-      ]).subscribe(([balance, contract]) => {
-        this.amountBurnControl.setValidators([
-          Validators.min(0),
-          Validators.required,
-          Validators.pattern('^[+-]?(\\d*\\.)?\\d+$'),
-          amountValidator(balance ?? new BigNumber(0), contract.decimals),
-        ])
-        this.amountBurnControl.updateValueAndValidity()
-      })
-    )
-
-    this.formGroup = this.formBuilder.group({
-      gatekeeperForm: ['', Validators.required],
-    })
-    this.setDefaults()
+    this.formGroup = this.formBuilder.group({})
   }
 
   ngOnInit(): void {
     this.route.params.pipe(take(1)).subscribe((params) => {
-      if (params.tab === 'mint') {
-        this.store$.dispatch(actions.selectTab({ tab: Tab.MINT }))
-      } else if (params.tab === 'burn') {
-        this.store$.dispatch(actions.selectTab({ tab: Tab.BURN }))
+      if (params.tab === 'operation') {
+        this.store$.dispatch(actions.selectTab({ tab: Tab.OPERATION }))
       } else {
         this.store$.dispatch(actions.selectTab({ tab: Tab.TRANSFER }))
       }
@@ -306,27 +197,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     for (const subscription of this.subscriptions) {
       subscription.unsubscribe()
     }
-  }
-
-  setDefaults() {
-    this.subscriptions.push(
-      combineLatest([this.store$.select(getActiveAccount), this.gatekeepers$])
-        .pipe(
-          map(([activeAccount, gatekeepers]) => {
-            if (activeAccount === undefined) {
-              return undefined
-            }
-            return gatekeepers.find(
-              (gatekeeper) => gatekeeper.address === activeAccount.address
-            )
-          })
-        )
-        .subscribe((activeAccount) => {
-          this.formGroup
-            .get('gatekeeperForm')!
-            .patchValue(activeAccount ? activeAccount?.address : '')
-        })
-    )
   }
 
   connectWallet() {
@@ -348,46 +218,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return ledgerHashTrimmed
   }
 
-  mint() {
+  operation() {
     this.submitOperationRequest(
-      OperationRequestKind.MINT,
-      this.amountControl.value,
-      this.ledgerHash
-    )
-  }
-
-  burn() {
-    this.submitOperationRequest(
-      OperationRequestKind.BURN,
-      this.amountBurnControl.value,
+      OperationRequestKind.OPERATION,
+      JSON.parse(this.lambdaControl.value),
       this.ledgerHash
     )
   }
 
   private submitOperationRequest(
     kind: OperationRequestKind,
-    value: string,
+    lambda: any,
     ledgerHash: string | null
   ) {
-    let targetAddress: string | null = null
-    if (kind === OperationRequestKind.MINT) {
-      targetAddress = this.formGroup.get('gatekeeperForm')!.value
-
-      validateAddress(targetAddress)
-    }
     this.activeContract$.pipe(take(1)).subscribe((contract) => {
       this.store$.dispatch(
         actions.submitOperationRequest({
           newOperationRequest: {
             contract_id: contract.id,
             kind,
-            amount: convertAmountToBigNumber(
-              value,
-              contract.decimals
-            ).toFixed(),
-            target_address: targetAddress,
+            lambda,
             threshold: null,
-            proposed_keyholders: null,
+            proposed_signers: null,
             ledger_hash: ledgerHash ?? null,
           },
         })
@@ -396,15 +248,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   transfer() {
-    const targetAddress: string | undefined | null = this
-      .receivingAddressControl.value
+    const targetAddress: string | undefined | null =
+      this.receivingAddressControl.value
     validateAddress(targetAddress)
     this.activeContract$.pipe(take(1)).subscribe((contract) => {
       this.store$.dispatch(
         actions.transferOperation({
           transferAmount: convertAmountToBigNumber(
             this.amountTransferControl.value,
-            contract.decimals
+            2 // TODO: get decimals from token metadata
           ),
           receivingAddress: this.receivingAddressControl.value,
         })
@@ -419,10 +271,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   setTransferMaxValue(): void {
     this.setMaxValue(this.balance$, this.amountTransferControl)
-  }
-
-  setMaxBurnableValue(event: any): void {
-    this.setMaxValue(this.redeemAddressBalance$, this.amountBurnControl)
   }
 
   setMaxValue(
@@ -443,7 +291,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       )
       .subscribe(({ balance, contract }) => {
         formControl.setValue(
-          convertBigNumberToAmount(balance, contract.decimals)
+          // TODO: get decimals from token metadata
+          convertBigNumberToAmount(balance, 2)
         )
       })
   }

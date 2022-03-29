@@ -1,16 +1,14 @@
-image: docker:latest
+include:
+  - project: 'papers/papers-internal/internal'
+    file: '/.base-gitlab-ci.yml'
+
 variables:
-  GIT_SUBMODULE_STRATEGY: recursive
-  DEV_GOOGLE_TAG: eu.gcr.io/papers-dev-kubernetes/tz-wrapped-frontend-dev:$CI_COMMIT_SHA
-  PROD_GOOGLE_TAG: eu.gcr.io/papers-kubernetes/tz-wrapped-frontend:$CI_COMMIT_SHA
-  TEST_TAG: tz_wrapped_frontend_test_$CI_COMMIT_SHA
-  DEV_GOOGLE_TAG_LATEST: eu.gcr.io/papers-dev-kubernetes/tz-wrapped-frontend-dev:latest
-  PROD_GOOGLE_TAG_LATEST: eu.gcr.io/papers-kubernetes/tz-wrapped-frontend:latest
+  NAMESPACE: multisig-orchestration
+  TEST_TAG: multisig_orchestration_frontend_test_$CI_COMMIT_SHA
 
 stages:
   - build
   - test
-  #   - qa
   - build_serve
   - publish
   - deploy
@@ -19,24 +17,6 @@ build:
   stage: build
   script:
     - docker build --target angular-build -t $TEST_TAG .
-  tags:
-    - docker
-
-build_serve_dev:
-  stage: build_serve
-  script:
-    - docker build --build-arg RUN_ENV=development -t $DEV_GOOGLE_TAG .
-  only:
-    - develop
-  tags:
-    - docker
-
-build_serve_prod:
-  stage: build_serve
-  script:
-    - docker build --build-arg RUN_ENV=production -t $PROD_GOOGLE_TAG .
-  only:
-    - master
   tags:
     - docker
 
@@ -58,109 +38,84 @@ test:
       - lcov.info
       - lintReport.json
 
-# qa:
-#   allow_failure: false
-#   stage: qa
-#   script:
-#     - docker create --name qa-$CI_PIPELINE_ID $TEST_TAG yarn sonar-scanner -- -X
-#       -Dsonar.typescript.lcov.reportPaths=lcov.info
-#       -Dsonar.typescript.tslint.reportPaths=lintReport.json
-#       -Dsonar.test.inclusions=**/*.spec.ts
-#       -Dsonar.tests=src/
-#       -Dsonar.exclusions=**/node_modules/**,**/*.spec.ts
-#       -Dsonar.sources=src/
-#       -Dsonar.host.url=$SONAR_URL
-#       -Dsonar.login=$SONAR_LOGIN
-#       -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA
-#       -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME
-#       -Dsonar.gitlab.project_id=$CI_PROJECT_ID
-#       -Dsonar.branch.name=$CI_BUILD_REF_NAME
-#     - docker cp lcov.info qa-$CI_PIPELINE_ID:/app/lcov.info
-#     - docker cp lintReport.json qa-$CI_PIPELINE_ID:/app/lintReport.json
-#     - docker start -a qa-$CI_PIPELINE_ID
-#   after_script:
-#     - docker rm -f qa-$CI_PIPELINE_ID || true
-#   tags:
-#     - docker
+.base_build_serve:
+  script:
+    - docker build --build-arg RUN_ENV=$CI_ENVIRONMENT_NAME -t $GOOGLE_TAG-$CI_ENVIRONMENT_NAME .
+
+build_serve_dev:
+  stage: build_serve
+  script:
+    - !reference [.base_build_serve, script]
+  only:
+    - develop
+  environment:
+    name: development
+
+build_serve_prod:
+  stage: build_serve
+  script:
+    - !reference [.base_build_serve, script]
+  only:
+    - master
+  environment:
+    name: production
 
 publish_dev:
   stage: publish
   needs: ['build_serve_dev']
-  image: google/cloud-sdk
-  before_script:
-    - echo $GCLOUD_GOOGLE_KEY_DEV > key.json
-    - gcloud auth activate-service-account $GCLOUD_ACCOUNT_DEV --key-file key.json
-    - gcloud config set project $GCLOUD_PROJECT_DEV
-    - gcloud config set account $GCLOUD_ACCOUNT_DEV
-    - gcloud config set compute/zone $GCLOUD_ZONE
-    - gcloud auth configure-docker
+  extends: .publish-dev
   script:
-    - docker tag $DEV_GOOGLE_TAG $DEV_GOOGLE_TAG_LATEST
-    - docker push $DEV_GOOGLE_TAG
-    - docker push $DEV_GOOGLE_TAG_LATEST
-  only:
-    - develop
-  tags:
-    - docker
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_DEV
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST_DEV
+    - docker push $GOOGLE_TAG_DEV
+    - docker push $GOOGLE_TAG_LATEST_DEV
+  environment:
+    name: development
+    action: prepare
 
-publish_prod:
-  stage: publish
-  needs: ['build_serve_prod']
-  image: google/cloud-sdk
-  before_script:
-    - echo $GCLOUD_GOOGLE_KEY > key.json
-    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
-    - gcloud config set project $GCLOUD_PROJECT
-    - gcloud config set account $GCLOUD_ACCOUNT
-    - gcloud config set compute/zone $GCLOUD_ZONE
-    - gcloud auth configure-docker
+# publish_prod:
+#   stage: publish
+#   needs: ['build_serve_prod']
+#   extends: .publish-prod
+#   script:
+#     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG
+#     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST
+#     - docker push $GOOGLE_TAG
+#     - docker push $GOOGLE_TAG_LATEST
+#   environment:
+#     name: production
+#     action: prepare
+
+.base_deployment:
   script:
-    - docker tag $PROD_GOOGLE_TAG $PROD_GOOGLE_TAG_LATEST
-    - docker push $PROD_GOOGLE_TAG
-    - docker push $PROD_GOOGLE_TAG_LATEST
-  only:
-    - master
-  tags:
-    - docker
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__CI_PROJECT_NAME__|"$CI_PROJECT_NAME"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$IMAGE_TAG"|g" {} +
+
+    # ensure namespace is applied before the other kubernetes entities
+    - kubectl apply -f k8s/common/namespace.yaml
+    - kubectl apply -f k8s/$CI_ENVIRONMENT_NAME/ --recursive
+    - kubectl apply -f k8s/common/ --recursive
 
 k8s-deploy-development:
   stage: deploy
   when: manual
-  image: google/cloud-sdk
-  before_script:
-    - echo $GCLOUD_GOOGLE_KEY_DEV > key.json
-    - gcloud auth activate-service-account $GCLOUD_ACCOUNT_DEV --key-file key.json
-    - gcloud config set project $GCLOUD_PROJECT_DEV
-    - gcloud config set account $GCLOUD_ACCOUNT_DEV
-    - gcloud config set compute/zone $GCLOUD_ZONE
-    - gcloud container clusters get-credentials papers-cluster-development
+  needs: ['publish-dev']
+  extends: .run_dev
+  variables:
+    IMAGE_TAG: $GOOGLE_TAG_DEV
   script:
-    - sed -i "s|_TO_BE_REPLACED_BY_IMAGE_TAG_|"$DEV_GOOGLE_TAG"|g" k8s/foundry/common/frontend/deployment.yaml
-    - kubectl apply -f k8s/foundry/common/namespace.yaml
-    - kubectl apply -f k8s/foundry/development/ --recursive
-    - kubectl apply -f k8s/foundry/common/ --recursive
-  only:
-    - develop
-  tags:
-    - docker
-
-k8s-deploy-production:
-  stage: deploy
-  when: manual
-  image: google/cloud-sdk
-  before_script:
-    - echo $GCLOUD_GOOGLE_KEY > key.json
-    - gcloud auth activate-service-account $GCLOUD_ACCOUNT --key-file key.json
-    - gcloud config set account $GCLOUD_ACCOUNT
-    - gcloud config set project $GCLOUD_PROJECT
-    - gcloud config set compute/zone $GCLOUD_ZONE
-    - gcloud container clusters get-credentials papers-cluster-production
-  script:
-    - sed -i "s|_TO_BE_REPLACED_BY_IMAGE_TAG_|"$PROD_GOOGLE_TAG"|g" k8s/foundry/common/frontend/deployment.yaml
-    - kubectl apply -f k8s/foundry/common/namespace.yaml
-    - kubectl apply -f k8s/foundry/production/ --recursive
-    - kubectl apply -f k8s/foundry/common/ --recursive
-  only:
-    - master
-  tags:
-    - docker
+    - !reference [.base_deployment, script]
+  environment:
+    name: development
+# k8s-deploy-production:
+#   stage: deploy
+#   when: manual
+#   needs: ["publish-prod"]
+#   extends: .run_prod
+#   variables:
+#     IMAGE_TAG: $GOOGLE_TAG_PROD
+#   script:
+#     - !reference [.base_deployment, script]
+#   environment:
+#     name: production

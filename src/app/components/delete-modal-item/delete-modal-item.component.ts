@@ -16,7 +16,7 @@ export class DeleteModalItemComponent implements OnInit {
   operationRequest!: OperationRequest
 
   @Input()
-  contractNonces$!: Observable<Map<string, number>>
+  contractCounters$!: Observable<Map<string, number>>
 
   constructor(
     public bsModalRef: BsModalRef,

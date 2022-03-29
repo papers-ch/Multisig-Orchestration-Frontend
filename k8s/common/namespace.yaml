@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: tz-wrapped
+  name: __NAMESPACE_NAME__

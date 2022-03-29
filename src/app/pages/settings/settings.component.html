@@ -17,7 +17,7 @@
         aria-label="name"
       />
     </div>
-    <div class="mb-3">
+    <!-- <div class="mb-3">
       <label class="d-block m-0">Notficiation Email address</label>
       <small>The email address that receives notficiations about events.</small>
     </div>
@@ -36,12 +36,12 @@
       <div class="invalid-feedback px-3 py-2">
         <strong>Invalid Email</strong>
       </div>
-    </div>
+    </div> -->
     <button
       (click)="updateSessionUser()"
       type="button"
       class="btn btn-primary btn-block mt-5"
-      [disabled]="emailControl.invalid"
+      [disabled]="displayNameControl.invalid"
     >
       Update Profile Details
     </button>
@@ -71,7 +71,7 @@
         class="btn btn-primary btn-block mt-3"
         [disabled]="!(canUpdateSelectedTezosNode$ | async)"
       >
-        <ng-container *ngIf="busyUpdateKeyholdersOperationRequests$ | async">
+        <ng-container *ngIf="busyChangeKeysOperationRequests$ | async">
           <span
             class="spinner-border spinner-border-sm mr-1"
             role="status"
@@ -85,7 +85,7 @@
   </div>
 </ng-container>
 
-<ng-container *ngIf="(isGatekeeper$ | async) || (isKeyholder$ | async)">
+<ng-container *ngIf="(isGatekeeper$ | async) || (isSigner$ | async)">
   <div class="card mt-5" *ngIf="activeContract$ | async as activeContract">
     <div class="card-body">
       <h4 class="text-primary pb-4">
@@ -115,52 +115,46 @@
     </div>
   </div>
   <div
-    class="card mt-5 keyholders--container"
+    class="card mt-5 signers--container"
     *ngIf="activeContract$ | async as activeContract"
   >
     <div class="card-body">
       <h4 class="text-primary pb-4">
         <strong>{{ activeContract.display_name }} Multisig Details</strong>
       </h4>
-      <ng-container *ngIf="keyholders$ | async as keyholders">
+      <ng-container *ngIf="signers$ | async as signers">
         <h5 class="pb-3">Signers</h5>
-        <div *ngFor="let keyholder of keyholders">
+        <div *ngFor="let signer of signers">
           <div class="row align-items-center pb-4">
             <div class="col col-md-10">
-              <h6 *ngIf="keyholder.display_name.length > 0" class="m-0">
-                <strong>{{ keyholder.display_name }}</strong>
+              <h6 *ngIf="signer.display_name.length > 0" class="m-0">
+                <strong>{{ signer.display_name }}</strong>
               </h6>
-              <p class="m-0">{{ keyholder.address }}</p>
+              <p class="m-0">{{ signer.address }}</p>
               <p class="text-muted m-0">
-                {{ keyholder.public_key | shorten }}
+                {{ signer.public_key | shorten }}
                 <a
                   class="btn btn-sm btn-icon btn-light rounded-circle ml-2"
-                  (click)="copyToClipboard(keyholder.public_key)"
+                  (click)="copyToClipboard(signer.public_key)"
                 >
                   <img src="/assets/img/copy.svg" />
                 </a>
               </p>
             </div>
-            <div
-              *ngIf="canUpdateKeyholders$ | async"
-              class="col col-md-2 pr-0 d-flex justify-content-center"
-            >
+            <div class="col col-md-2 pr-0 d-flex justify-content-center">
               <div
-                (click)="toggleKeyholder(keyholder)"
+                (click)="toggleSigner(signer)"
                 class="border rounded-circle border-primary bg-white status--container d-flex align-items-center justify-content-center"
               >
                 <img
-                  *ngIf="isToggledOn(keyholder) | async"
+                  *ngIf="isToggledOn(signer) | async"
                   src="/assets/img/check.svg"
                 />
               </div>
             </div>
           </div>
         </div>
-        <ng-container
-          *ngIf="canUpdateKeyholders$ | async"
-          [formGroup]="formGroup"
-        >
+        <ng-container [formGroup]="formGroup">
           <div class="my-3">
             <label class="d-block m-0">Change Multisig Signers</label>
             <small>
@@ -227,7 +221,7 @@
                 />
                 <div class="input-group-prepend">
                   <span class="input-group-text bg-light">
-                    out of <strong>&nbsp;{{ keyholdersCount$ | async }}</strong>
+                    out of <strong>&nbsp;{{ signersCount$ | async }}</strong>
                   </span>
                 </div>
                 <div class="invalid-feedback px-3 py-2">
@@ -265,9 +259,7 @@
               formGroup.invalid || !(isUpdateContractEnabled$ | async)
             "
           >
-            <ng-container
-              *ngIf="busyUpdateKeyholdersOperationRequests$ | async"
-            >
+            <ng-container *ngIf="busyChangeKeysOperationRequests$ | async">
               <span
                 class="spinner-border spinner-border-sm mr-1"
                 role="status"
@@ -284,13 +276,13 @@
 
   <operation-request-group
     name="Multi Signature Update"
-    [kind]="'update_keyholders'"
-    [openOperationRequestList]="openUpdateKeyholdersOperationRequests$ | async"
+    [kind]="'change_keys'"
+    [openOperationRequestList]="openChangeKeysOperationRequests$ | async"
     [approvedOperationRequestList]="
-      approvedUpdateKeyholdersOperationRequests$ | async
+      approvedChangeKeysOperationRequests$ | async
     "
     [injectedOperationRequestList]="
-      injectedUpdateKeyholdersOperationRequests$ | async
+      injectedChangeKeysOperationRequests$ | async
     "
   >
   </operation-request-group>

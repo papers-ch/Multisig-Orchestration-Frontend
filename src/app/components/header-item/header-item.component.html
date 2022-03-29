@@ -23,12 +23,12 @@
             class="btn btn-light dropdown-toggle"
             aria-controls="dropdown-animated"
           >
-            <img
+            <!-- <img
               width="32px"
               height="32px"
               [src]="(imageSrcMap$ | async).get(activeContract.id)"
               class="mr-2"
-            />
+            /> -->
             {{ activeContract.display_name }}
           </button>
           <ul
@@ -40,12 +40,12 @@
           >
             <li role="menuitem" *ngFor="let contract of contracts$ | async">
               <a class="dropdown-item" (click)="changeContract(contract)">
-                <img
+                <!-- <img
                   width="32px"
                   height="32px"
                   [src]="(imageSrcMap$ | async).get(contract.id)"
                   class="mr-2"
-                />
+                /> -->
                 {{ contract.display_name }}
               </a>
             </li>

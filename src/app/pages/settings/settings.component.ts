@@ -3,22 +3,22 @@ import { Store } from '@ngrx/store'
 import {
   getActiveAccount,
   getActiveContract,
-  getApprovedUpdateKeyholdersOperationRequests,
-  getBusyUpdateKeyholdersOperationRequests,
+  getApprovedChangeKeysOperationRequests,
+  getBusyChangeKeysOperationRequests,
   getCanSignIn,
   getGatekeepers,
-  getInjectedUpdateKeyholdersOperationRequests,
-  getKeyholders,
-  getKeyholdersToAdd,
-  getKeyholdersToRemove,
+  getInjectedChangeKeysOperationRequests,
+  getSigners,
+  getSignersToAdd,
+  getSignersToRemove,
   getNewThreshold,
-  getOpenUpdateKeyholdersOperationRequests,
+  getOpenChangeKeysOperationRequests,
   getSelectedTezosNode,
   getSessionUser,
   getTezosNodes,
   isAdmin,
   isGatekeeper,
-  isKeyholder,
+  isSigner,
 } from 'src/app/app.selectors'
 import * as fromRoot from '../../reducers/index'
 import * as actions from '../../app.actions'
@@ -76,36 +76,35 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   public isGatekeeper$: Observable<boolean>
-  public isKeyholder$: Observable<boolean>
+  public isSigner$: Observable<boolean>
   public isAdmin$: Observable<boolean>
   public gatekeepers$: Observable<User[]>
-  public keyholders$: Observable<User[]>
+  public signers$: Observable<User[]>
   public activeContract$: Observable<Contract>
   public sessionUser$: Observable<SessionUser>
-  public keyholdersCount$: Observable<number>
+  public signersCount$: Observable<number>
   public newThreshold$: Observable<number>
   public isUpdateContractEnabled$: Observable<boolean>
-  public canUpdateKeyholders$: Observable<boolean>
   public canUpdateSelectedTezosNode$: Observable<boolean>
 
-  public openUpdateKeyholdersOperationRequests$: Observable<
+  public openChangeKeysOperationRequests$: Observable<
     PagedResponse<OperationRequest> | undefined
   >
-  public approvedUpdateKeyholdersOperationRequests$: Observable<
+  public approvedChangeKeysOperationRequests$: Observable<
     PagedResponse<OperationRequest> | undefined
   >
-  public injectedUpdateKeyholdersOperationRequests$: Observable<
+  public injectedChangeKeysOperationRequests$: Observable<
     PagedResponse<OperationRequest> | undefined
   >
 
   public tezosNodes$: Observable<TezosNode[]>
 
-  public busyUpdateKeyholdersOperationRequests$: Observable<boolean>
+  public busyChangeKeysOperationRequests$: Observable<boolean>
 
   private subscriptions: Subscription[] = []
 
-  private keyholdersToRemove$: Observable<User[]>
-  private keyholdersToAdd$: Observable<string[]>
+  private signersToRemove$: Observable<User[]>
+  private signersToAdd$: Observable<string[]>
 
   constructor(
     private readonly store$: Store<fromRoot.State>,
@@ -131,36 +130,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .select(getActiveContract)
       .pipe(isNotNullOrUndefined())
     this.isGatekeeper$ = this.store$.select(isGatekeeper)
-    this.isKeyholder$ = this.store$.select(isKeyholder)
+    this.isSigner$ = this.store$.select(isSigner)
     this.isAdmin$ = this.store$.select(isAdmin)
-    this.canUpdateKeyholders$ = combineLatest([
-      this.isKeyholder$,
-      this.activeContract$,
-    ]).pipe(
-      map(
-        ([isKeyholder, contract]) =>
-          isKeyholder &&
-          contract.capabilities.includes(OperationRequestKind.UPDATE_KEYHOLDERS)
-      )
-    )
     this.sessionUser$ = this.store$
       .select(getSessionUser)
       .pipe(isNotNullOrUndefined())
     this.gatekeepers$ = this.store$.select(getGatekeepers)
-    this.keyholders$ = this.store$.select(getKeyholders)
-    this.keyholdersToRemove$ = this.store$.select(getKeyholdersToRemove)
-    this.keyholdersToAdd$ = this.store$.select(getKeyholdersToAdd)
-    this.busyUpdateKeyholdersOperationRequests$ = this.store$.select(
-      getBusyUpdateKeyholdersOperationRequests
+    this.signers$ = this.store$.select(getSigners)
+    this.signersToRemove$ = this.store$.select(getSignersToRemove)
+    this.signersToAdd$ = this.store$.select(getSignersToAdd)
+    this.busyChangeKeysOperationRequests$ = this.store$.select(
+      getBusyChangeKeysOperationRequests
     )
-    this.keyholdersCount$ = combineLatest([
-      this.keyholders$,
-      this.keyholdersToAdd$,
-      this.keyholdersToRemove$,
+    this.signersCount$ = combineLatest([
+      this.signers$,
+      this.signersToAdd$,
+      this.signersToRemove$,
     ]).pipe(
       map(
-        ([keyholders, toAdd, toRemove]) =>
-          keyholders.length + toAdd.length - toRemove.length
+        ([signers, toAdd, toRemove]) =>
+          signers.length + toAdd.length - toRemove.length
       )
     )
     this.newThreshold$ = this.store$
@@ -169,8 +158,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isUpdateContractEnabled$ = combineLatest([
       this.activeContract$,
       this.newThreshold$,
-      this.keyholdersToRemove$,
-      this.keyholdersToAdd$,
+      this.signersToRemove$,
+      this.signersToAdd$,
     ]).pipe(
       map(([contract, newThreshold, toRemove, toAdd]) => {
         return (
@@ -191,14 +180,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
       map(([selectedNode]) => selectedNode.id !== this.tezosNodesForm.value)
     )
 
-    this.openUpdateKeyholdersOperationRequests$ = this.store$.select(
-      getOpenUpdateKeyholdersOperationRequests
+    this.openChangeKeysOperationRequests$ = this.store$.select(
+      getOpenChangeKeysOperationRequests
     )
-    this.approvedUpdateKeyholdersOperationRequests$ = this.store$.select(
-      getApprovedUpdateKeyholdersOperationRequests
+    this.approvedChangeKeysOperationRequests$ = this.store$.select(
+      getApprovedChangeKeysOperationRequests
     )
-    this.injectedUpdateKeyholdersOperationRequests$ = this.store$.select(
-      getInjectedUpdateKeyholdersOperationRequests
+    this.injectedChangeKeysOperationRequests$ = this.store$.select(
+      getInjectedChangeKeysOperationRequests
     )
 
     const usersSub = combineLatest([
@@ -214,7 +203,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       )
       .subscribe(({ contract }) => {
         this.store$.dispatch(actions.loadUsers({ contractId: contract.id }))
-        this.store$.dispatch(actions.loadUpdateKeyholdersOperationRequests())
+        this.store$.dispatch(actions.loadChangeKeysOperationRequests())
       })
     this.subscriptions.push(usersSub)
     this.displayNameControl = new FormControl('')
@@ -239,18 +228,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
         actions.updateThreshold({ threshold: contract.min_approvals })
       )
     })
-    const keyholdersCountSub = combineLatest([this.keyholdersCount$]).subscribe(
-      ([keyholdersCount]) => {
+    const signersCountSub = combineLatest([this.signersCount$]).subscribe(
+      ([signersCount]) => {
         this.thresholdControl.setValidators([
           Validators.required,
           Validators.min(1),
-          Validators.max(keyholdersCount),
+          Validators.max(signersCount),
           Validators.pattern('^\\d+$'),
         ])
         this.thresholdControl.updateValueAndValidity()
       }
     )
-    this.subscriptions.push(keyholdersCountSub)
+    this.subscriptions.push(signersCountSub)
 
     const thresholdSub = this.thresholdControl.valueChanges.subscribe(
       (value) => {
@@ -292,33 +281,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .subscribe(([status, [prev, next]]) => {
         if (status === 'VALID') {
           if (next !== '') {
-            combineLatest([this.keyholders$, this.keyholdersToAdd$])
+            combineLatest([this.signers$, this.signersToAdd$])
               .pipe(
                 take(1),
-                map(([keyholders, keyholdersToAdd]) => ({
-                  keyholders: keyholders.map((kh) => kh.public_key),
-                  keyholdersToAdd,
+                map(([signers, toAdd]) => ({
+                  signers: signers.map((kh) => kh.public_key),
+                  toAdd,
                 }))
               )
-              .subscribe(({ keyholders, keyholdersToAdd }) => {
-                if (
-                  !keyholdersToAdd.includes(next) &&
-                  !keyholders.includes(next)
-                ) {
+              .subscribe(({ signers, toAdd }) => {
+                if (!toAdd.includes(next) && !signers.includes(next)) {
                   this.store$.dispatch(
-                    actions.updateKeyholdersToAdd({ keyholder: next })
+                    actions.updateSignersToAdd({ signer: next })
                   )
                 }
               })
           } else if (prev !== '') {
-            this.store$.dispatch(
-              actions.updateKeyholdersToAdd({ keyholder: prev })
-            )
+            this.store$.dispatch(actions.updateSignersToAdd({ signer: prev }))
           }
         } else if (status === 'INVALID' && prev !== '') {
-          this.store$.dispatch(
-            actions.updateKeyholdersToAdd({ keyholder: prev })
-          )
+          this.store$.dispatch(actions.updateSignersToAdd({ signer: prev }))
         }
       })
     this.subscriptions.push(sub)
@@ -334,7 +316,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       const control = this.publicKeysControls.controls[idx] as FormControl
       if (!control.invalid && control.value && control.value.length > 0) {
         this.store$.dispatch(
-          actions.updateKeyholdersToAdd({ keyholder: control.value })
+          actions.updateSignersToAdd({ signer: control.value })
         )
       }
       this.publicKeysControls.removeAt(idx)
@@ -370,24 +352,23 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public updateContract() {
     combineLatest([
       this.activeContract$,
-      this.keyholders$,
-      this.keyholdersToRemove$,
-      this.keyholdersToAdd$,
+      this.signers$,
+      this.signersToRemove$,
+      this.signersToAdd$,
       this.newThreshold$,
     ])
       .pipe(take(1))
-      .subscribe(([contract, keyholders, toRemove, toAdd, threshold]) => {
-        const proposedKeyholders = keyholders
+      .subscribe(([contract, signers, toRemove, toAdd, threshold]) => {
+        const proposedSigners = signers
           .filter((kh) => !toRemove.includes(kh))
           .map((kh) => kh.public_key)
           .concat(toAdd)
         const newOperationRequest: NewOperationRequest = {
-          kind: OperationRequestKind.UPDATE_KEYHOLDERS,
+          kind: OperationRequestKind.CHANGE_KEYS,
           contract_id: contract.id,
-          target_address: null,
-          amount: null,
+          lambda: null,
           threshold,
-          proposed_keyholders: proposedKeyholders.sort(),
+          proposed_signers: proposedSigners.sort(),
           ledger_hash: this.ledgerHash,
         }
         this.store$.dispatch(
@@ -410,13 +391,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
     })
   }
 
-  public toggleKeyholder(keyholder: User) {
-    this.store$.dispatch(actions.updateKeyholdersToRemove({ keyholder }))
+  public toggleSigner(signer: User) {
+    this.store$.dispatch(actions.updateSignersToRemove({ signer: signer }))
   }
 
-  public isToggledOn(keyholder: User): Observable<boolean> {
-    return this.keyholdersToRemove$.pipe(
-      map((keyholdersToRemove) => !keyholdersToRemove.includes(keyholder))
+  public isToggledOn(singer: User): Observable<boolean> {
+    return this.signersToRemove$.pipe(
+      map((toRemove) => !toRemove.includes(singer))
     )
   }
 
@@ -425,8 +406,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private reset() {
-    this.store$.dispatch(actions.resetKeyholdersToRemove())
-    this.store$.dispatch(actions.resetKeyholdersToAdd())
+    this.store$.dispatch(actions.resetSignersToRemove())
+    this.store$.dispatch(actions.resetSignersToAdd())
     this.publicKeysControls.controls = [this.createPublicKeyControl()]
     this.activeContract$.pipe(take(1)).subscribe((contract) => {
       this.store$.dispatch(

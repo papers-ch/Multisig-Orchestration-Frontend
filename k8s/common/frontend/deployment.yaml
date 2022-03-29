@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tz-wrapped-frontend
-  namespace: tz-wrapped
+  name: __CI_PROJECT_NAME__
+  namespace: __NAMESPACE_NAME__
   labels:
-    app: tz-wrapped-frontend
+    app: __CI_PROJECT_NAME__
 spec:
   selector:
     matchLabels:
-      app: tz-wrapped-frontend
+      app: __CI_PROJECT_NAME__
   replicas: 1
   revisionHistoryLimit: 3
   strategy:
@@ -18,17 +18,17 @@ spec:
   template:
     metadata:
       labels:
-        app: tz-wrapped-frontend
+        app: __CI_PROJECT_NAME__
     spec:
       containers:
-        - name: tz-wrapped-frontend
+        - name: __CI_PROJECT_NAME__
           image: _TO_BE_REPLACED_BY_IMAGE_TAG_
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: tz-wrapped-frontend-config-map
+                name: __CI_PROJECT_NAME__-config-map
             # - secretRef:
-            #     name: tz-wrapped-frontend-secret
+            #     name: __CI_PROJECT_NAME__-secret
           ports:
             - containerPort: 80
           readinessProbe:

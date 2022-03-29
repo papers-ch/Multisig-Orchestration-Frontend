@@ -1,5 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: tz-wrapped-frontend-config-map
-  namespace: tz-wrapped

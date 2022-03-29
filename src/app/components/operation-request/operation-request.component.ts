@@ -17,10 +17,9 @@ import { DeleteModalItemComponent } from '../delete-modal-item/delete-modal-item
 import {
   getActiveContract,
   getAddress,
-  getGatekeepers,
-  getKeyholders,
+  getSigners,
   isGatekeeper,
-  isKeyholder,
+  isSigner,
 } from 'src/app/app.selectors'
 import { isNotNullOrUndefined } from 'src/app/app.operators'
 import { CopyService } from 'src/app/services/copy/copy-service.service'
@@ -44,15 +43,14 @@ export class OperationRequestComponent implements OnInit {
 
   public address$: Observable<string>
   public isGatekeeper$: Observable<boolean>
-  public isKeyholder$: Observable<boolean>
-  public keyholders$: Observable<User[]>
+  public isSigner$: Observable<boolean>
+  public signers$: Observable<User[]>
   public contract$: Observable<Contract>
-  public receivingAddress$!: Observable<string | undefined>
 
   public currentUserApproved$: Observable<boolean>
   public multisigItems$!: Observable<UserWithApproval[]>
 
-  public contractNonce$: Observable<number> = new Observable()
+  public contractCounter$: Observable<number> = new Observable()
 
   constructor(
     private readonly store$: Store<fromRoot.State>,
@@ -62,57 +60,35 @@ export class OperationRequestComponent implements OnInit {
   ) {
     this.address$ = this.store$.select(getAddress).pipe(isNotNullOrUndefined())
     this.isGatekeeper$ = this.store$.select(isGatekeeper)
-    this.isKeyholder$ = this.store$.select(isKeyholder)
-    this.keyholders$ = this.store$.select(getKeyholders)
+    this.isSigner$ = this.store$.select(isSigner)
+    this.signers$ = this.store$.select(getSigners)
     this.contract$ = this.store$
       .select(getActiveContract)
       .pipe(isNotNullOrUndefined())
     this.currentUserApproved$ = this.address$.pipe(
       map((address) =>
         this.operationRequest.operation_approvals.some(
-          (approval) => approval.keyholder.address === address
+          (approval) => approval.signer.address === address
         )
       )
     )
   }
 
   async ngOnInit(): Promise<void> {
-    this.receivingAddress$ = this.store$.select(getGatekeepers).pipe(
-      map((gatekeepers) => {
-        const targetAddress = this.operationRequest.target_address
-        if (!targetAddress) {
-          return undefined
-        }
-        const gatekeeper = gatekeepers.find(
-          (gatekeeper) => gatekeeper.address == targetAddress
-        )
-        if (gatekeeper) {
-          return `${gatekeeper.display_name} - ${this.shortenPipe.transform(
-            targetAddress
-          )}`
-        } else {
-          return this.shortenPipe.transform(targetAddress)
-        }
-      })
-    )
     const operationRequestId = this.operationRequest.id
     if (this.operationRequest.state !== OperationRequestState.INJECTED) {
-      this.multisigItems$ = combineLatest([
-        this.keyholders$,
-        this.address$,
-      ]).pipe(
-        map(([keyholders, address]) =>
-          keyholders.map((user) => ({
+      this.multisigItems$ = combineLatest([this.signers$, this.address$]).pipe(
+        map(([signers, address]) =>
+          signers.map((user) => ({
             ...user,
             requestId: operationRequestId,
             isCurrentUser: user.address === address,
             hasApproval: this.operationRequest.operation_approvals.some(
-              (approval) => approval.keyholder.id === user.id
+              (approval) => approval.signer.id === user.id
             ),
             updated_at:
               this.operationRequest.operation_approvals.find(
-                (operationApproval) =>
-                  operationApproval.keyholder.id === user.id
+                (operationApproval) => operationApproval.signer.id === user.id
               )?.created_at ?? '',
           }))
         )
@@ -121,18 +97,18 @@ export class OperationRequestComponent implements OnInit {
       this.multisigItems$ = this.address$.pipe(
         map((address) =>
           this.operationRequest.operation_approvals.map((approval) => ({
-            ...approval.keyholder,
+            ...approval.signer,
             requestId: operationRequestId,
-            isCurrentUser: approval.keyholder.address === address,
+            isCurrentUser: approval.signer.address === address,
             hasApproval: true,
           }))
         )
       )
     }
-    this.contractNonce$ = this.contract$.pipe(
+    this.contractCounter$ = this.contract$.pipe(
       switchMap((contract) =>
         this.store$
-          .select((state) => state.app.contractNonces.get(contract.id))
+          .select((state) => state.app.contractCounters.get(contract.id))
           .pipe(
             filter((value) => value !== undefined),
             map((value) => value!)
@@ -225,15 +201,15 @@ export class OperationRequestComponent implements OnInit {
   }
 
   public delete() {
-    const contractNonces$ = this.store$.select(
-      (state) => state.app.contractNonces
+    const contractCounters$ = this.store$.select(
+      (state) => state.app.contractCounters
     )
 
     this.modalService.show(DeleteModalItemComponent, {
       class: 'modal-lg',
       initialState: {
         operationRequest: this.operationRequest,
-        contractNonces$: contractNonces$,
+        contractCounters$: contractCounters$,
       },
     })
   }

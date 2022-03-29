@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store'
 import { combineLatest, Observable } from 'rxjs'
 import * as fromRoot from '../../reducers/index'
 import * as actions from '../../app.actions'
-import { map } from 'rxjs/operators'
+import { map, take } from 'rxjs/operators'
 import { Contract } from 'src/app/services/api/interfaces/contract'
 import {
   getActiveAccount,
@@ -23,22 +23,22 @@ export class HeaderItemComponent implements OnInit {
   public username$: Observable<string | undefined>
   public activeContract$: Observable<Contract | undefined>
   public contracts$: Observable<Contract[]>
-  public imageSrcMap$: Observable<Map<string, string>>
+  // public imageSrcMap$: Observable<Map<string, string>>
 
   constructor(private readonly store$: Store<fromRoot.State>) {
     this.activeContract$ = this.store$.select(getActiveContract)
     this.contracts$ = this.store$.select(getContracts)
-    this.imageSrcMap$ = this.contracts$.pipe(
-      map(
-        (contracts) =>
-          new Map<string, string>(
-            contracts.map((contract) => [
-              contract.id,
-              `/assets/img/${contract.symbol.toLowerCase()}.svg`,
-            ])
-          )
-      )
-    )
+    // this.imageSrcMap$ = this.contracts$.pipe(
+    //   map(
+    //     (contracts) =>
+    //       new Map<string, string>(
+    //         contracts.map((contract) => [
+    //           contract.id,
+    //           `/assets/img/${contract.symbol.toLowerCase()}.svg`,
+    //         ])
+    //       )
+    //   )
+    // )
     this.sessionUser$ = this.store$.select(getSessionUser)
     this.username$ = combineLatest([
       this.store$.select(getActiveAccount),
@@ -67,6 +67,10 @@ export class HeaderItemComponent implements OnInit {
   }
 
   changeContract(contract: Contract) {
-    this.store$.dispatch(actions.setActiveContract({ contract }))
+    this.activeContract$.pipe(take(1)).subscribe((currentActive) => {
+      if (currentActive?.id !== contract.id) {
+        this.store$.dispatch(actions.setActiveContract({ contract }))
+      }
+    })
   }
 }

@@ -20,7 +20,6 @@ import {
 import { ShortenPipe } from 'src/app/pipes/shorten.pipe'
 import { AmountConverterPipe } from 'src/app/pipes/amount.pipe'
 import { initialState as appInitialState, State } from '../../app.reducer'
-import { ContractKind } from 'src/app/services/api/interfaces/contract'
 import { Actions } from '@ngrx/effects'
 import { EMPTY } from 'rxjs'
 
@@ -31,18 +30,13 @@ describe('OperationRequestComponent', () => {
     app: {
       ...appInitialState,
       activeContract: {
-        decimals: 8,
         id: '',
         created_at: '',
         updated_at: '',
-        pkh: '',
-        token_id: 0,
+        address: '',
         min_approvals: 2,
-        multisig_pkh: '',
-        kind: ContractKind.FA1,
+        multisig_address: '',
         display_name: '',
-        symbol: 'tez',
-        capabilities: [],
       },
     },
   }
@@ -89,13 +83,11 @@ describe('OperationRequestComponent', () => {
         display_name: '',
       },
       contract_id: '',
-      target_address: '',
-      amount: '1',
+      lambda: null,
       threshold: 2,
-      proposed_keyholders: [],
-      kind: OperationRequestKind.MINT,
-      chain_id: '',
-      nonce: 0,
+      proposed_signers: [],
+      kind: OperationRequestKind.OPERATION,
+      counter: 0,
       state: OperationRequestState.OPEN,
       operation_approvals: [],
       operation_hash: '',

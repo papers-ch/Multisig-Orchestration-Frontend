@@ -5,7 +5,7 @@ export enum UserState {
 
 export enum UserKind {
   GATEKEEPER = 'gatekeeper',
-  KEYHOLDER = 'keyholder',
+  SIGNER = 'signer',
   ADMIN = 'admin',
 }
 

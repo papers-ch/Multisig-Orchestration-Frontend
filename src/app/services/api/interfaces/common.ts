@@ -4,6 +4,11 @@ export interface PagedResponse<T> {
   results: T[]
 }
 
+export enum Order {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+
 export interface SignableMessageInfo {
   message: string
   tezos_client_command: string

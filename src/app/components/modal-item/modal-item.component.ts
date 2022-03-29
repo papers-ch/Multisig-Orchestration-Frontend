@@ -1,10 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core'
 import { BsModalRef } from 'ngx-bootstrap/modal'
 import { SignableMessageInfo } from 'src/app/services/api/interfaces/common'
-import {
-  Contract,
-  ContractKind,
-} from 'src/app/services/api/interfaces/contract'
+import { Contract } from 'src/app/services/api/interfaces/contract'
 import { CopyService } from 'src/app/services/copy/copy-service.service'
 
 @Component({
@@ -18,14 +15,6 @@ export class ModalItemComponent implements OnInit {
 
   @Input()
   contract!: Contract
-
-  public get isFA1(): boolean {
-    return this.contract.kind == ContractKind.FA1
-  }
-
-  public get isFA2(): boolean {
-    return this.contract.kind == ContractKind.FA2
-  }
 
   constructor(
     public bsModalRef: BsModalRef,

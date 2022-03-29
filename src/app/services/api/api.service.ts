@@ -4,7 +4,7 @@ import { Observable } from 'rxjs'
 import { environment } from 'src/environments/environment'
 import { User } from './interfaces/user'
 import { Contract } from './interfaces/contract'
-import { PagedResponse, SignableMessageInfo } from './interfaces/common'
+import { Order, PagedResponse, SignableMessageInfo } from './interfaces/common'
 import {
   NewOperationRequest,
   OperationRequest,
@@ -117,9 +117,10 @@ export class ApiService {
     operationKind: OperationRequestKind,
     operationState: OperationRequestState,
     page = 1,
-    limit = pageLimit
+    limit = pageLimit,
+    order = Order.ASC
   ): Observable<PagedResponse<OperationRequest>> {
-    const path = `${ApiService.operationRequestsPath}?kind=${operationKind}&contract_id=${contractId}&state=${operationState}&page=${page}&limit=${limit}`
+    const path = `${ApiService.operationRequestsPath}?kind=${operationKind}&contract_id=${contractId}&state=${operationState}&page=${page}&limit=${limit}&order=${order}`
     return this.http.get<PagedResponse<OperationRequest>>(this.getUrl(path), {
       withCredentials: true,
     })
@@ -155,8 +156,8 @@ export class ApiService {
     return this.http.get<any>(this.getUrl(path), { withCredentials: true })
   }
 
-  getContractNonce(contractId: string): Observable<any> {
-    const path = `${ApiService.contractsPath}/${contractId}/nonce`
+  getContractCounter(contractId: string): Observable<any> {
+    const path = `${ApiService.contractsPath}/${contractId}/counter`
     return this.http.get<any>(this.getUrl(path))
   }
 

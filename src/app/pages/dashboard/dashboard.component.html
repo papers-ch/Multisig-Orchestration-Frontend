@@ -36,15 +36,15 @@
                   balance
                     | amountConverter
                       : {
-                          decimals: activeContract.decimals,
-                          symbol: activeContract.symbol
+                          decimals: 2,
+                          symbol: '$'
                         }
                     | async
                 }}
               </span>
             </label>
             <div class="input-group">
-              <div class="input-group-prepend">
+              <!-- <div class="input-group-prepend">
                 <span class="input-group-text">
                   <img
                     width="32px"
@@ -54,7 +54,7 @@
                   />
                   {{ activeContract.symbol }}
                 </span>
-              </div>
+              </div> -->
               <input
                 [formControl]="amountTransferControl"
                 type="text"
@@ -107,51 +107,18 @@
           </ng-template>
         </tab>
         <tab
-          *ngIf="canMint$ | async"
-          heading="Mint"
-          id="tab-mint"
-          [active]="selectedTab === 'tab-mint'"
+          heading="Operation"
+          id="tab-operation"
+          [active]="selectedTab === 'tab-operation'"
           (selectTab)="onSelect($event)"
         >
           <div class="my-5">
-            <label>Receiving Address</label>
+            <label>Lambda</label>
 
             <div class="mb-3">
-              <form [formGroup]="formGroup">
-                <div class="form-group">
-                  <select
-                    formControlName="gatekeeperForm"
-                    class="form-control custom-select"
-                  >
-                    <option [ngValue]="null" disabled>Select Address</option>
-                    <option hidden value="" disabled selected>
-                      Select Address
-                    </option>
-
-                    <option
-                      *ngFor="let gatekeeper of gatekeepers$ | async"
-                      [ngValue]="gatekeeper.address"
-                    >
-                      {{
-                        gatekeeper.display_name.length > 0
-                          ? gatekeeper.display_name + ' -'
-                          : ''
-                      }}
-                      {{ gatekeeper.address | shorten }}
-                    </option>
-                  </select>
-                </div>
-              </form>
-
-              <div class="invalid-feedback px-3 py-2">
-                <strong>Invalid Address</strong>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label>Enter amount to mint</label>
+              <label>Enter Michelson Lambda reprepsenting the operation</label>
               <div class="input-group input-group__two-items">
-                <div class="input-group-prepend">
+                <!-- <div class="input-group-prepend">
                   <span class="input-group-text">
                     <img
                       width="32px"
@@ -161,21 +128,21 @@
                     />
                     {{ activeContract.symbol }}
                   </span>
-                </div>
-                <input
-                  [formControl]="amountControl"
+                </div> -->
+                <textarea
+                  [formControl]="lambdaControl"
                   type="text"
                   class="form-control"
-                  placeholder="0.0"
+                  placeholder="[]"
                   aria-label="Amount"
                   [ngClass]="{
                     'is-invalid':
-                      amountControl.errors &&
-                      (amountControl.touched || amountControl.dirty)
+                      lambdaControl.errors &&
+                      (lambdaControl.touched || lambdaControl.dirty)
                   }"
-                />
+                ></textarea>
                 <div class="invalid-feedback px-3 py-2">
-                  <strong>Invalid Amount</strong>
+                  <strong>Invalid lambda</strong>
                 </div>
               </div>
             </div>
@@ -205,141 +172,22 @@
             <button
               type="button"
               class="btn btn-primary btn-block"
-              (click)="mint()"
+              (click)="operation()"
               [disabled]="
-                amountControl.invalid ||
-                (busyMintOpeartionRequests$ | async) ||
-                !(isGatekeeper$ | async) ||
+                lambdaControl.invalid ||
+                (busyOpeartionRequests$ | async) ||
+                (!(isGatekeeper$ | async) && !(isSigner$ | async)) ||
                 !formGroup.valid
               "
             >
-              <ng-container *ngIf="busyMintOpeartionRequests$ | async"
+              <ng-container *ngIf="busyOpeartionRequests$ | async"
                 ><span
                   class="spinner-border spinner-border-sm mr-1"
                   role="status"
                   aria-hidden="true"
                 ></span>
               </ng-container>
-              Request Mint
-            </button>
-          </ng-container>
-        </tab>
-        <tab
-          *ngIf="canBurn$ | async"
-          heading="Burn"
-          id="tab-burn"
-          [active]="selectedTab === 'tab-burn'"
-          (selectTab)="onSelect($event)"
-        >
-          <div class="my-5">
-            <ng-container *ngIf="redeemAddress$ | async as address">
-              <label>Balance on burn address</label>
-              <h3>
-                <span *ngIf="redeemAddressBalance$ | async as balance">
-                  {{
-                    balance
-                      | amountConverter
-                        : {
-                            decimals: activeContract.decimals,
-                            symbol: activeContract.symbol
-                          }
-                      | async
-                  }}
-                </span>
-              </h3>
-              <a
-                href="https://tezblock.io/account/{{ address }}"
-                class="text-muted d-block"
-                target="_blank"
-                >{{ address | shorten
-                }}<img
-                  class="ml-1"
-                  src="/assets/img/external-link.svg"
-                  width="14px"
-              /></a>
-            </ng-container>
-
-            <div class="mb-3">
-              <label class="pt-3">Enter amount to burn</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text">
-                    <img
-                      width="32px"
-                      height="32px"
-                      [src]="activeContractImagePath$ | async"
-                      class="mr-2"
-                    />
-                    {{ activeContract.symbol }}
-                  </span>
-                </div>
-                <input
-                  [formControl]="amountBurnControl"
-                  type="text"
-                  class="form-control"
-                  placeholder="0.0"
-                  aria-label="Amount"
-                  [ngClass]="{
-                    'is-invalid':
-                      amountBurnControl.errors &&
-                      (amountBurnControl.touched || amountBurnControl.dirty)
-                  }"
-                />
-                <span class="input-group-prepend">
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    (click)="setMaxBurnableValue()"
-                  >
-                    Max
-                  </button>
-                </span>
-                <div class="invalid-feedback px-3 py-2">
-                  <strong>Invalid Amount</strong>
-                </div>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label>Expected ledger hash (optional)</label>
-              <div class="input-group input-group__two-items">
-                <input
-                  [formControl]="ledgerHashControl"
-                  type="text"
-                  class="form-control"
-                  aria-label="Ledger Hash"
-                  [ngClass]="{
-                    'is-invalid':
-                      ledgerHashControl.errors &&
-                      (ledgerHashControl.touched || ledgerHashControl.dirty)
-                  }"
-                />
-                <div class="invalid-feedback px-3 py-2">
-                  <strong>Invalid ledger hash</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <ng-container *ngIf="address$ | async as address; else connectButton">
-            <button
-              type="button"
-              class="btn btn-primary btn-block"
-              (click)="burn()"
-              [disabled]="
-                amountBurnControl.invalid ||
-                (busyBurnOpeartionRequests$ | async) ||
-                !(isGatekeeper$ | async)
-              "
-            >
-              <ng-container *ngIf="busyBurnOpeartionRequests$ | async"
-                ><span
-                  class="spinner-border spinner-border-sm mr-1"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              </ng-container>
-              Request Burn
+              Request Operation
             </button>
           </ng-container>
         </tab>
@@ -351,36 +199,21 @@
 <ng-container
   *ngIf="{
     isGatekeeper: isGatekeeper$ | async,
-    isKeyholder: isKeyholder$ | async
+    isSigner: isSigner$ | async
   } as userType"
 >
   <ng-container
     *ngIf="
-      (userType.isGatekeeper || userType.isKeyholder) &&
-      (selectedTab$ | async) === 'tab-mint'
+      (userType.isGatekeeper || userType.isSigner) &&
+      (selectedTab$ | async) === 'tab-operation'
     "
   >
     <operation-request-group
-      name="Mint"
-      [kind]="'mint'"
-      [openOperationRequestList]="openMintOperationRequests$ | async"
-      [approvedOperationRequestList]="approvedMintOperationRequests$ | async"
-      [injectedOperationRequestList]="injectedMintOperationRequests$ | async"
-    >
-    </operation-request-group>
-  </ng-container>
-  <ng-container
-    *ngIf="
-      (userType.isGatekeeper || userType.isKeyholder) &&
-      (selectedTab$ | async) === 'tab-burn'
-    "
-  >
-    <operation-request-group
-      name="Burn"
-      [kind]="'burn'"
-      [openOperationRequestList]="openBurnOperationRequests$ | async"
-      [approvedOperationRequestList]="approvedBurnOperationRequests$ | async"
-      [injectedOperationRequestList]="injectedBurnOperationRequests$ | async"
+      name="Operation"
+      [kind]="'operation'"
+      [openOperationRequestList]="openOperationRequests$ | async"
+      [approvedOperationRequestList]="approvedOperationRequests$ | async"
+      [injectedOperationRequestList]="injectedOperationRequests$ | async"
     >
     </operation-request-group>
   </ng-container>

@@ -163,16 +163,16 @@ export const loadAddressFailed = createAction(
   props<{ error: any }>()
 )
 
-export const loadContractNonce = createAction(
-  `[${featureName}] Load Contract Nonce`,
+export const loadContractCounter = createAction(
+  `[${featureName}] Load Contract Counter`,
   props<{ contractId: string }>()
 )
-export const loadContractNonceSucceeded = createAction(
-  `[${featureName}] Load Contract Nonce Succeeded`,
-  props<{ contractId: string; nonce: number }>()
+export const loadContractCounterSucceeded = createAction(
+  `[${featureName}] Load Contract Counter Succeeded`,
+  props<{ contractId: string; counter: number }>()
 )
-export const loadContractNonceFailed = createAction(
-  `[${featureName}] Load Contract Nonce Failed`,
+export const loadContractCounterFailed = createAction(
+  `[${featureName}] Load Contract Counter Failed`,
   props<{ errorResponse: HttpErrorResponse }>()
 )
 
@@ -234,108 +234,73 @@ export const loadUsersFailed = createAction(
   props<{ errorResponse: HttpErrorResponse }>()
 )
 
-export const loadMintOperationRequests = createAction(
-  `[${featureName}] Load Mint Operation Requests`
+export const loadOperationRequests = createAction(
+  `[${featureName}] Load Operation Requests`
 )
 
-export const loadOpenMintOperationRequests = createAction(
-  `[${featureName}] Load Open Mint Operation Requests`,
+export const loadOpenOperationRequests = createAction(
+  `[${featureName}] Load Open Operation Requests`,
   props<{ page?: number }>()
 )
-export const loadApprovedMintOperationRequests = createAction(
-  `[${featureName}] Load Approved Mint Operation Requests`,
+export const loadApprovedOperationRequests = createAction(
+  `[${featureName}] Load Approved Operation Requests`,
   props<{ page?: number }>()
 )
-export const loadInjectedMintOperationRequests = createAction(
-  `[${featureName}] Load Injected Mint Operation Requests`,
+export const loadInjectedOperationRequests = createAction(
+  `[${featureName}] Load Injected Operation Requests`,
   props<{ page?: number }>()
 )
 
-export const loadOpenMintOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Open Mint Operation Requests Succeeded`,
+export const loadOpenOperationRequestsSucceeded = createAction(
+  `[${featureName}] Load Open Operation Requests Succeeded`,
   props<{ response: PagedResponse<OperationRequest> }>()
 )
-export const loadApprovedMintOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Approved Mint Operation Requests Succeeded`,
+export const loadApprovedOperationRequestsSucceeded = createAction(
+  `[${featureName}] Load Approved Operation Requests Succeeded`,
   props<{ response: PagedResponse<OperationRequest> }>()
 )
-export const loadInjectedMintOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Injected Mint Operation Requests Succeeded`,
+export const loadInjectedOperationRequestsSucceeded = createAction(
+  `[${featureName}] Load Injected Operation Requests Succeeded`,
   props<{ response: PagedResponse<OperationRequest> }>()
 )
 
-export const loadMintOperationRequestsFailed = createAction(
-  `[${featureName}] Load Mint Operation Requests Failed`,
+export const loadOperationRequestsFailed = createAction(
+  `[${featureName}] Load Operation Requests Failed`,
   props<{ errorResponse: HttpErrorResponse }>()
 )
 
-export const loadBurnOperationRequests = createAction(
-  `[${featureName}] Load Burn Operation Requests`
+export const loadChangeKeysOperationRequests = createAction(
+  `[${featureName}] Load Change Keys Operation Requests`
 )
 
-export const loadOpenBurnOperationRequests = createAction(
-  `[${featureName}] Load Open Burn Operation Requests`,
+export const loadOpenChangeKeysOperationRequests = createAction(
+  `[${featureName}] Load Open Change Keys Operation Requests`,
   props<{ page?: number }>()
 )
-export const loadApprovedBurnOperationRequests = createAction(
-  `[${featureName}] Load Approved Burn Operation Requests`,
+export const loadApprovedChangeKeysOperationRequests = createAction(
+  `[${featureName}] Load Approved Change Keys Operation Requests`,
   props<{ page?: number }>()
 )
-export const loadInjectedBurnOperationRequests = createAction(
-  `[${featureName}] Load Injected Burn Operation Requests`,
-  props<{ page?: number }>()
-)
-
-export const loadOpenBurnOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Open Burn Operation Requests Succeeded`,
-  props<{ response: PagedResponse<OperationRequest> }>()
-)
-export const loadApprovedBurnOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Approved Burn Operation Requests Succeeded`,
-  props<{ response: PagedResponse<OperationRequest> }>()
-)
-export const loadInjectedBurnOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Injected Burn Operation Requests Succeeded`,
-  props<{ response: PagedResponse<OperationRequest> }>()
-)
-
-export const loadBurnOperationRequestsFailed = createAction(
-  `[${featureName}] Load Burn Operation Requests Failed`,
-  props<{ errorResponse: HttpErrorResponse }>()
-)
-
-export const loadUpdateKeyholdersOperationRequests = createAction(
-  `[${featureName}] Load Update Keyholders Operation Requests`
-)
-
-export const loadOpenUpdateKeyholdersOperationRequests = createAction(
-  `[${featureName}] Load Open Update Keyholders Operation Requests`,
-  props<{ page?: number }>()
-)
-export const loadApprovedUpdateKeyholdersOperationRequests = createAction(
-  `[${featureName}] Load Approved Update Keyholders Operation Requests`,
-  props<{ page?: number }>()
-)
-export const loadInjectedUpdateKeyholdersOperationRequests = createAction(
-  `[${featureName}] Load Injected Update Keyholders Operation Requests`,
+export const loadInjectedChangeKeysOperationRequests = createAction(
+  `[${featureName}] Load Injected Change Keys Operation Requests`,
   props<{ page?: number }>()
 )
 
-export const loadOpenUpdateKeyholdersOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Open Update Keyholders Operation Requests Succeeded`,
+export const loadOpenChangeKeysOperationRequestsSucceeded = createAction(
+  `[${featureName}] Load Open Change Keys Operation Requests Succeeded`,
   props<{ response: PagedResponse<OperationRequest> }>()
 )
-export const loadApprovedUpdateKeyholdersOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Approved Update Keyholders Operation Requests Succeeded`,
+export const loadApprovedChangeKeysOperationRequestsSucceeded = createAction(
+  `[${featureName}] Load Approved Change Keys Operation Requests Succeeded`,
   props<{ response: PagedResponse<OperationRequest> }>()
 )
-export const loadInjectedUpdateKeyholdersOperationRequestsSucceeded = createAction(
-  `[${featureName}] Load Injected Update Keyholders Operation Requests Succeeded`,
+export const loadInjectedChangeKeysOperationRequestsSucceeded = createAction(
+  `[${featureName}] Load Injected Change Keys Operation Requests Succeeded`,
   props<{ response: PagedResponse<OperationRequest> }>()
 )
 
-export const loadUpdateKeyholdersOperationRequestsFailed = createAction(
-  `[${featureName}] Load Update Keyholders Operation Requests Failed`,
+export const loadChangeKeysOperationRequestsFailed = createAction(
+  `[${featureName}] Load Change Keys Operation Requests Failed`,
   props<{ errorResponse: HttpErrorResponse }>()
 )
 
@@ -488,51 +453,26 @@ export const setActiveContractFailed = createAction(
   props<{ errorResponse: HttpErrorResponse }>()
 )
 
-export const loadRedeemAddress = createAction(
-  `[${featureName}] Load Redeem Address`,
-  props<{ contract: Contract }>()
-)
-export const loadRedeemAddressSucceeded = createAction(
-  `[${featureName}] Load Redeem Address Succeeded`,
-  props<{ address: string }>()
-)
-export const loadRedeemAddressFailed = createAction(
-  `[${featureName}] Load Redeem Address Failed`,
-  props<{ error: any }>()
-)
-
-export const loadRedeemAddressBalance = createAction(
-  `[${featureName}] Load Redeem Address Balance`
-)
-export const loadRedeemAddressBalanceSucceeded = createAction(
-  `[${featureName}] Load Redeem Address Balance Succeeded`,
-  props<{ balance: BigNumber | undefined }>()
-)
-export const loadRedeemAddressBalanceFailed = createAction(
-  `[${featureName}] Load Redeem Address Balance Failed`,
-  props<{ error: any }>()
-)
-
 export const showAlert = createAction(
   `[${featureName}] setting New Alert Message`,
   props<{ alertMessage: ErrorDescription }>()
 )
 export const clearAlerts = createAction(`[${featureName}] Clearing Alerts`)
 
-export const updateKeyholdersToRemove = createAction(
-  `[${featureName}] Update keyholders to remove`,
-  props<{ keyholder: User }>()
+export const updateSignersToRemove = createAction(
+  `[${featureName}] Update Signers to remove`,
+  props<{ signer: User }>()
 )
-export const resetKeyholdersToRemove = createAction(
-  `[${featureName}] Reset keyholders to remove`
+export const resetSignersToRemove = createAction(
+  `[${featureName}] Reset Signers to remove`
 )
 
-export const updateKeyholdersToAdd = createAction(
-  `[${featureName}] Update keyholders to add`,
-  props<{ keyholder: string }>()
+export const updateSignersToAdd = createAction(
+  `[${featureName}] Update Signers to add`,
+  props<{ signer: string }>()
 )
-export const resetKeyholdersToAdd = createAction(
-  `[${featureName}] Reset keyholders to add`
+export const resetSignersToAdd = createAction(
+  `[${featureName}] Reset Signers to add`
 )
 
 export const updateThreshold = createAction(

@@ -8,22 +8,18 @@ import {
   SigningType,
   SignPayloadResponseOutput,
 } from '@airgap/beacon-sdk'
-import {
-  TezosToolkit,
-  TransactionWalletOperation,
-  WalletContract,
-} from '@taquito/taquito'
+import { TezosToolkit, WalletContract } from '@taquito/taquito'
 import BigNumber from 'bignumber.js'
 import { BeaconWallet } from '@taquito/beacon-wallet'
 
 import { RpcClient } from '@taquito/rpc'
 import { Uint8ArrayConsumer } from '@taquito/local-forging'
-import { Contract, ContractKind } from '../api/interfaces/contract'
+import { Contract } from '../api/interfaces/contract'
 import { Store } from '@ngrx/store'
 import * as fromRoot from '../../reducers/index'
-import { forkJoin, from, Observable } from 'rxjs'
+import { Observable } from 'rxjs'
 import { getSelectedTezosNode } from 'src/app/app.selectors'
-import { map, switchMap, take } from 'rxjs/operators'
+import { map, take } from 'rxjs/operators'
 import { isNotNullOrUndefined } from 'src/app/app.operators'
 
 const MichelsonCodec = require('@taquito/local-forging/dist/lib/michelson/codec')
@@ -72,40 +68,28 @@ export class BeaconService {
   }
 
   async transferOperation(
+    tokenId: number,
     amount: BigNumber,
     receivingAddress: string,
     contract: Contract
   ): Promise<void> {
     let tezos = await this.tezos.pipe(take(1)).toPromise()
-    let contractInstance = await tezos.wallet.at(contract.pkh)
+    let contractInstance = await tezos.wallet.at(contract.address)
     const pkhSrc = await this.wallet.getPKH()
-
-    let operation: TransactionWalletOperation
-    switch (contract.kind) {
-      case ContractKind.FA1: {
-        operation = await contractInstance.methods
-          .transfer(pkhSrc, receivingAddress, amount.toFixed())
-          .send()
-        break
-      }
-      case ContractKind.FA2: {
-        operation = await contractInstance.methods
-          .transfer([
+    let operation = await contractInstance.methods
+      .transfer([
+        {
+          from_: pkhSrc,
+          txs: [
             {
-              from_: pkhSrc,
-              txs: [
-                {
-                  to_: receivingAddress,
-                  token_id: contract.token_id,
-                  amount: amount.toFixed(),
-                },
-              ],
+              to_: receivingAddress,
+              token_id: tokenId,
+              amount: amount.toFixed(),
             },
-          ])
-          .send()
-        break
-      }
-    }
+          ],
+        },
+      ])
+      .send()
     await operation.confirmation()
   }
 
@@ -130,52 +114,41 @@ export class BeaconService {
   }
 
   async getBalance(
+    tokenId: number,
     address: string,
     contract: Contract
   ): Promise<BigNumber | undefined> {
-    if (contract.kind === ContractKind.FA1) {
-      return await this.getFA1Balance(contract, address).catch(
-        (_error) => new BigNumber(0)
-      )
-    } else if (contract.kind === ContractKind.FA2) {
-      return await this.getFA2Balance(contract, address).catch(
-        (_error) => new BigNumber(0)
-      )
-    }
-  }
-
-  async getRedeemAddress(contract: Contract): Promise<string> {
-    switch (contract.kind) {
-      case ContractKind.FA1:
-        return await this.getFA1RedeemAddress(contract)
-      case ContractKind.FA2:
-        return await this.getFA2RedeemAddress(contract)
-    }
+    const storage: Storage = await this.fetchStorage(contract)
+    const balance = await storage.ledger.get({
+      token_id: tokenId,
+      owner: address,
+    })
+    return new BigNumber(balance ?? 0)
   }
 
   private dataCache: Map<string, any> = new Map()
   private pendingRequests: Map<string, Promise<any>> = new Map()
 
   private async fetchStorage(contract: Contract): Promise<any> {
-    let storage = this.dataCache.get(contract.pkh)
+    let storage = this.dataCache.get(contract.address)
     if (storage !== undefined) {
       return storage
     }
-    const promise = this.pendingRequests.get(contract.pkh)
+    const promise = this.pendingRequests.get(contract.address)
     if (promise) {
       return promise
     }
     const tezos = await this.tezos.pipe(take(1)).toPromise()
     const storagePromise = tezos.wallet
-      .at(contract.pkh)
+      .at(contract.address)
       .then((contractInstance) => {
         return contractInstance
           .storage()
-          .finally(() => this.pendingRequests.delete(contract.pkh))
+          .finally(() => this.pendingRequests.delete(contract.address))
       })
-    this.pendingRequests.set(contract.pkh, storagePromise)
+    this.pendingRequests.set(contract.address, storagePromise)
     storage = await storagePromise
-    this.dataCache.set(contract.pkh, storage)
+    this.dataCache.set(contract.address, storage)
     return storage
   }
 
@@ -208,34 +181,11 @@ export class BeaconService {
     return packedData
   }
 
-  private async getFA1RedeemAddress(contract: Contract): Promise<string> {
-    const packedData = await this.fetchPackedData(
-      `${contract.pkh}-redeemAddress`,
-      { string: 'redeemAddress' },
-      { prim: 'string' }
-    )
-    const storage: any = await this.fetchStorage(contract)
-    const bigMap = storage['0'] ?? storage.dataMap
-    const value: any = await bigMap.get(packedData.packed)
-    const decodedValue = MichelsonCodec.valueDecoder(
-      Uint8ArrayConsumer.fromHexString(value.slice(2))
-    )
-    const address = Codec.addressDecoder(
-      Uint8ArrayConsumer.fromHexString(decodedValue.bytes)
-    )
-    return address
-  }
-
-  private async getFA2RedeemAddress(contract: Contract): Promise<string> {
-    const storage: any = await this.fetchStorage(contract)
-    return storage.redeem_address
-  }
-
   private async getFA1Balance(contract: Contract, userAddress: string) {
     const client = await this.rpcClient.pipe(take(1)).toPromise()
 
     const packedData = await this.fetchPackedData(
-      `${contract.pkh}-ledger-${userAddress}`,
+      `${contract.address}-ledger-${userAddress}`,
       {
         prim: 'Pair',
         args: [{ string: 'ledger' }, { string: userAddress }],
@@ -255,14 +205,5 @@ export class BeaconService {
     )
 
     return new BigNumber(decodedValue.args[0].int)
-  }
-
-  private async getFA2Balance(contract: Contract, userAddress: string) {
-    const storage: Storage = await this.fetchStorage(contract)
-    const balance = await storage.ledger.get({
-      token_id: contract.token_id,
-      owner: userAddress,
-    })
-    return new BigNumber(balance ?? 0)
   }
 }

@@ -47,8 +47,8 @@ export const getUsers = createSelector(selectApp, (state) => state.users)
 
 export const getBalance = createSelector(selectApp, (state) => state.balance)
 
-export const getKeyholders = createSelector(getUsers, (users) =>
-  users.filter((user) => user.kind === UserKind.KEYHOLDER)
+export const getSigners = createSelector(getUsers, (users) =>
+  users.filter((user) => user.kind === UserKind.SIGNER)
 )
 
 export const getGatekeepers = createSelector(getUsers, (users) =>
@@ -71,7 +71,7 @@ export const isGatekeeper = createSelector(
     )
 )
 
-export const isKeyholder = createSelector(
+export const isSigner = createSelector(
   getActiveContract,
   getSessionUser,
   (contract, user) =>
@@ -79,7 +79,7 @@ export const isKeyholder = createSelector(
     user !== undefined &&
     user.roles.some(
       (role) =>
-        role.contract_id === contract.id && role.kind === UserKind.KEYHOLDER
+        role.contract_id === contract.id && role.kind === UserKind.SIGNER
     )
 )
 
@@ -94,124 +94,80 @@ export const isAdmin = createSelector(
     )
 )
 
-export const getOpenMintOperationRequests = createSelector(
+export const getOpenOperationRequests = createSelector(
   selectApp,
-  (state) => state.openMintOperationRequests
+  (state) => state.openOperationRequests
 )
 
-export const getOpenMintOperationRequestCurrentPage = createSelector(
+export const getOpenOperationRequestCurrentPage = createSelector(
   selectApp,
-  (state) => state.openMintOperationRequests?.page
+  (state) => state.openOperationRequests?.page
 )
 
-export const getApprovedMintOperationRequests = createSelector(
+export const getApprovedOperationRequests = createSelector(
   selectApp,
-  (state) => state.approvedMintOperationRequests
+  (state) => state.approvedOperationRequests
 )
 
-export const getApprovedMintOperationRequestCurrentPage = createSelector(
+export const getApprovedOperationRequestCurrentPage = createSelector(
   selectApp,
-  (state) => state.approvedMintOperationRequests?.page
+  (state) => state.approvedOperationRequests?.page
 )
 
-export const getInjectedMintOperationRequests = createSelector(
+export const getInjectedOperationRequests = createSelector(
   selectApp,
-  (state) => state.injectedMintOperationRequests
+  (state) => state.injectedOperationRequests
 )
 
-export const getInjectedMintOperationRequestCurrentPage = createSelector(
+export const getInjectedOperationRequestCurrentPage = createSelector(
   selectApp,
-  (state) => state.injectedMintOperationRequests?.page
+  (state) => state.injectedOperationRequests?.page
 )
 
-export const getOpenBurnOperationRequests = createSelector(
+export const getOpenChangeKeysOperationRequests = createSelector(
   selectApp,
   (state) => {
-    return state.openBurnOperationRequests
+    return state.openChangeKeysOperationRequests
   }
 )
 
-export const getOpenBurnOperationRequestCurrentPage = createSelector(
+export const getOpenChangeKeysOperationRequestCurrentPage = createSelector(
   selectApp,
   (state) => {
-    return state.openBurnOperationRequests?.page
+    return state.openChangeKeysOperationRequests?.page
   }
 )
 
-export const getApprovedBurnOperationRequests = createSelector(
+export const getApprovedChangeKeysOperationRequests = createSelector(
   selectApp,
-  (state) => state.approvedBurnOperationRequests
+  (state) => state.approvedChangeKeysOperationRequests
 )
 
-export const getApprovedBurnOperationRequestCurrentPage = createSelector(
+export const getApprovedChangeKeysOperationRequestCurrentPage = createSelector(
   selectApp,
-  (state) => state.approvedBurnOperationRequests?.page
+  (state) => state.approvedChangeKeysOperationRequests?.page
 )
 
-export const getInjectedBurnOperationRequests = createSelector(
+export const getInjectedChangeKeysOperationRequests = createSelector(
   selectApp,
-  (state) => state.injectedBurnOperationRequests
+  (state) => state.injectedChangeKeysOperationRequests
 )
 
-export const getInjectedBurnOperationRequestCurrentPage = createSelector(
+export const getInjectedChangeKeysOperationRequestCurrentPage = createSelector(
   selectApp,
-  (state) => state.injectedBurnOperationRequests?.page
-)
-
-export const getOpenUpdateKeyholdersOperationRequests = createSelector(
-  selectApp,
-  (state) => {
-    return state.openUpdateKeyholdersOperationRequests
-  }
-)
-
-export const getOpenUpdateKeyholdersOperationRequestCurrentPage = createSelector(
-  selectApp,
-  (state) => {
-    return state.openUpdateKeyholdersOperationRequests?.page
-  }
-)
-
-export const getApprovedUpdateKeyholdersOperationRequests = createSelector(
-  selectApp,
-  (state) => state.approvedUpdateKeyholdersOperationRequests
-)
-
-export const getApprovedUpdateKeyholdersOperationRequestCurrentPage = createSelector(
-  selectApp,
-  (state) => state.approvedUpdateKeyholdersOperationRequests?.page
-)
-
-export const getInjectedUpdateKeyholdersOperationRequests = createSelector(
-  selectApp,
-  (state) => state.injectedUpdateKeyholdersOperationRequests
-)
-
-export const getInjectedUpdateKeyholdersOperationRequestCurrentPage = createSelector(
-  selectApp,
-  (state) => state.injectedUpdateKeyholdersOperationRequests?.page
-)
-
-export const getRedeemAddress = createSelector(
-  selectApp,
-  (state) => state.redeemAddress
-)
-
-export const getRedeemAddressBalance = createSelector(
-  selectApp,
-  (state) => state.redeemAddressBalance
+  (state) => state.injectedChangeKeysOperationRequests?.page
 )
 
 export const getAlerts = createSelector(selectApp, (state) => state.alerts)
 
-export const getKeyholdersToRemove = createSelector(
+export const getSignersToRemove = createSelector(
   selectApp,
-  (state) => state.keyholdersToRemove
+  (state) => state.signersToRemove
 )
 
-export const getKeyholdersToAdd = createSelector(
+export const getSignersToAdd = createSelector(
   selectApp,
-  (state) => state.keyholdersToAdd
+  (state) => state.signersToAdd
 )
 
 export const getNewThreshold = createSelector(
@@ -219,17 +175,12 @@ export const getNewThreshold = createSelector(
   (state) => state.newThreshold
 )
 
-export const getBusyMintOperationRequests = createSelector(
+export const getBusyOperationRequests = createSelector(
   selectApp,
-  (state) => state.busy.mintOperationRequests
+  (state) => state.busy.operationRequests
 )
 
-export const getBusyBurnOperationRequests = createSelector(
+export const getBusyChangeKeysOperationRequests = createSelector(
   selectApp,
-  (state) => state.busy.burnOperationRequests
-)
-
-export const getBusyUpdateKeyholdersOperationRequests = createSelector(
-  selectApp,
-  (state) => state.busy.updateKeyholdersOperationRequests
+  (state) => state.busy.changeKeysOperationRequests
 )
