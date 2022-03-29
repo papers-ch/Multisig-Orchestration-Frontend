@@ -17,17 +17,13 @@ RUN apt-get update && apt-get install -y wget --no-install-recommends \
   && apt-get purge --auto-remove -y curl \
   && rm -rf /src/*.deb
 
-RUN yarn --version
-
 RUN mkdir /app
 WORKDIR /app
 
 # install dependencies
-ADD package.json /app/package.json
-ADD yarn.lock /app/yarn.lock
+ADD package.json yarn.lock .yarnrc.yml /app/
 ADD .yarn /app/.yarn
-
-RUN yarn config set unsafe-perm true
+# RUN yarn config set unsafe-perm true
 RUN yarn install --frozen-lockfile
 
 ENV NODE_ENV production
