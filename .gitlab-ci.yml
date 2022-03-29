@@ -42,7 +42,7 @@ test:
   script:
     - docker build --build-arg RUN_ENV=$CI_ENVIRONMENT_NAME -t $GOOGLE_TAG-$CI_ENVIRONMENT_NAME .
 
-build_serve_dev:
+build-serve-dev:
   stage: build_serve
   script:
     - !reference [.base_build_serve, script]
@@ -51,7 +51,7 @@ build_serve_dev:
   environment:
     name: development
 
-build_serve_prod:
+build-serve-prod:
   stage: build_serve
   script:
     - !reference [.base_build_serve, script]
@@ -60,9 +60,9 @@ build_serve_prod:
   environment:
     name: production
 
-publish_dev:
+publish-dev:
   stage: publish
-  needs: ['build_serve_dev']
+  needs: ['build-serve-dev']
   extends: .publish-dev
   script:
     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_DEV
@@ -73,9 +73,9 @@ publish_dev:
     name: development
     action: prepare
 
-# publish_prod:
+# publish-prod:
 #   stage: publish
-#   needs: ['build_serve_prod']
+#   needs: ['build-serve-prod']
 #   extends: .publish-prod
 #   script:
 #     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG
