@@ -23,6 +23,7 @@ WORKDIR /app
 # install dependencies
 ADD package.json /app/package.json
 ADD yarn.lock /app/yarn.lock
+ADD .yarn /app/.yarn
 
 RUN yarn config set unsafe-perm true
 RUN yarn install --frozen-lockfile
