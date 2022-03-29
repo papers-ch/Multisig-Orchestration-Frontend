@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y wget --no-install-recommends \
   && apt-get purge --auto-remove -y curl \
   && rm -rf /src/*.deb
 
-RUN npm install -g yarn@3.2.0
+RUN yarn --version
 
 RUN mkdir /app
 WORKDIR /app
