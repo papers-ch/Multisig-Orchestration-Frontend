@@ -22,7 +22,7 @@
 
       <ng-container *ngIf="operationRequest.proposed_signers !== null">
         <p class="mb-0"><strong>Signers</strong></p>
-        <h5>
+        <div class="pb-3">
           <p
             *ngFor="let proposed of operationRequest.proposed_signers"
             class="text-muted m-0"
@@ -33,7 +33,7 @@
                 : (proposed.address | shorten)
             }}
           </p>
-        </h5>
+        </div>
       </ng-container>
       <strong>Requester</strong>
       <p *ngIf="operationRequest.user.display_name.length > 0" class="m-0">

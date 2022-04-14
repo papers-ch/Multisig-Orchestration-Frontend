@@ -5,3 +5,6 @@ textarea {
   min-height: 100px;
   width: 100%;
 }
+textarea.form-control:disabled {
+  height: 300px;
+}
