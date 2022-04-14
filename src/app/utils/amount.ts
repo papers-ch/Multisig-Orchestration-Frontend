@@ -1,5 +1,11 @@
-import { AbstractControl, ValidatorFn } from '@angular/forms'
+import { AbstractControl, ValidatorFn, Validators } from '@angular/forms'
 import BigNumber from 'bignumber.js'
+
+export interface Amount {
+  value: BigNumber
+  decimals: number
+  symbol: string
+}
 
 export const convertBigNumberToAmount = (
   balance: BigNumber,
@@ -26,3 +32,11 @@ export function amountValidator(max: BigNumber, decimals: number): ValidatorFn {
     return !isValid ? { invalidValue: { value: control.value } } : null
   }
 }
+
+export const createAmountValidators = (balance: Amount | undefined) => [
+  Validators.min(0),
+  Validators.max(balance?.value.toNumber() ?? 0),
+  Validators.required,
+  Validators.pattern('^[+-]?(\\d*\\.)?\\d+$'),
+  amountValidator(balance?.value ?? new BigNumber(0), balance?.decimals ?? 0),
+]

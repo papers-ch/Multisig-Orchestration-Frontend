@@ -83,6 +83,14 @@
       </button>
     </div>
   </div>
+  <app-settings-template
+    [contract]="activeContract$ | async"
+    [templates]="operationTemplates$ | async"
+    [selectedTemplate]="selectedOperationTemplate$ | async"
+    (onSelectedTemplate)="selectedTemplate($event)"
+    (onAddTemplate)="addOperationTemplate($event)"
+    (onRemoveTemplate)="removeOperationTemplate($event)"
+  ></app-settings-template>
 </ng-container>
 
 <ng-container *ngIf="(isGatekeeper$ | async) || (isSigner$ | async)">

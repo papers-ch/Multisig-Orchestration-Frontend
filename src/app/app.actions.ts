@@ -27,6 +27,11 @@ import {
 import { Tab } from './pages/dashboard/tab'
 import { ErrorDescription } from './components/error-item/error-description'
 import { TezosNode } from './services/api/interfaces/nodes'
+import { TokenMetadata } from '@taquito/tzip12'
+import {
+  NewOperationTemplate,
+  OperationTemplate,
+} from './services/api/interfaces/operationTemplate'
 
 const featureName = 'App'
 
@@ -211,7 +216,7 @@ export const selectTezosNodeFailed = createAction(
   props<{ errorResponse: HttpErrorResponse }>()
 )
 
-export const loadContracts = createAction(`[${featureName}] Load Contracts `)
+export const loadContracts = createAction(`[${featureName}] Load Contracts`)
 export const loadContractsSucceeded = createAction(
   `[${featureName}] Load Contracts Succeeded`,
   props<{ response: PagedResponse<Contract> }>()
@@ -219,6 +224,26 @@ export const loadContractsSucceeded = createAction(
 export const loadContractsFailed = createAction(
   `[${featureName}] Load Contracts Failed`,
   props<{ error: any }>()
+)
+
+export const getAllTokenMetadata = createAction(
+  `[${featureName}] Get All Token Metadata`
+)
+export const getAllTokenMetadataSucceeded = createAction(
+  `[${featureName}] Get All Token Metadata Succeeded`,
+  props<{ contract: Contract; allTokenMetadata: TokenMetadata[] }>()
+)
+export const getAllTokenMetadataFailed = createAction(
+  `[${featureName}] Get All Token Metadata Failed`,
+  props<{ error: any }>()
+)
+
+export const setActiveTokenId = createAction(
+  `[${featureName}] Set Active Token ID`,
+  props<{ tokenId: number }>()
+)
+export const setActiveTokenIdFailed = createAction(
+  `[${featureName}] Set Active Token ID Failed`
 )
 
 export const loadUsers = createAction(
@@ -490,4 +515,47 @@ export const loadOperationRequestPage = createAction(
     state: OperationRequestState
     page: number
   }>()
+)
+
+export const loadOperationTemplates = createAction(
+  `[${featureName}] Load Operation Templates`
+)
+export const loadOperationTemplatesSucceeded = createAction(
+  `[${featureName}] Load Operation Templates Succeeded`,
+  props<{ templates: OperationTemplate[] }>()
+)
+export const loadOperationTemplatesFailed = createAction(
+  `[${featureName}] Load Operation Templates Failed`,
+  props<{ errorResponse: HttpErrorResponse }>()
+)
+
+export const setSelectedOperationTemplate = createAction(
+  `[${featureName}] Set Selected Operation Template`,
+  props<{ template: OperationTemplate | undefined }>()
+)
+
+export const addOperationTemplate = createAction(
+  `[${featureName}] Add Operation Template`,
+  props<{ template: NewOperationTemplate }>()
+)
+export const addOperationTemplateSucceeded = createAction(
+  `[${featureName}] Add Operation Template Succeeded`,
+  props<{ template: OperationTemplate }>()
+)
+export const addOperationTemplateFailed = createAction(
+  `[${featureName}] Add Operation Template Failed`,
+  props<{ errorResponse: HttpErrorResponse }>()
+)
+
+export const deleteOperationTemplate = createAction(
+  `[${featureName}] Delete Operation Template`,
+  props<{ template: OperationTemplate }>()
+)
+export const deleteOperationTemplateSucceeded = createAction(
+  `[${featureName}] Delete Operation Template Succeeded`,
+  props<{ template: OperationTemplate }>()
+)
+export const deleteOperationTemplateFailed = createAction(
+  `[${featureName}] Delete Operation Template Failed`,
+  props<{ errorResponse: HttpErrorResponse }>()
 )

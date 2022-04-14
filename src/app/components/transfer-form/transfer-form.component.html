@@ -1,0 +1,91 @@
+<form [formGroup]="formGroup">
+  <div class="my-5">
+    <app-token-selector
+      [allTokenMetadata]="allTokenMetadata"
+      [selectedTokenMetadataIndex]="selectedTokenMetadataIndex"
+      (onSelectedTokenMetadata)="selectedTokenMetadata($event)"
+    ></app-token-selector>
+    <label>Receiving Address</label>
+    <div class="form-group mb-3">
+      <input
+        [formControl]="receivingAddressControl"
+        type="text"
+        class="form-control"
+        placeholder="tz1.."
+        aria-label="Address"
+        [ngClass]="{
+          'is-invalid':
+            receivingAddressControl.errors &&
+            (receivingAddressControl.touched || receivingAddressControl.dirty)
+        }"
+      />
+      <div class="invalid-feedback px-3 py-2 px-3 py-2">
+        <strong>Invalid Address</strong>
+      </div>
+    </div>
+    <label class="d-flex justify-content-between"
+      >Amount
+      <span *ngIf="balance"
+        >Balance:
+        {{
+          balance.value
+            | amountConverter
+              : {
+                  decimals: balance.decimals,
+                  symbol: balance.symbol
+                }
+            | async
+        }}
+      </span>
+    </label>
+    <div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" *ngIf="balance">
+          <!-- <img
+              width="32px"
+              height="32px"
+              [src]="activeContractImagePath$ | async"
+              class="mr-2"
+            /> -->
+          {{ balance.symbol }}
+        </span>
+      </div>
+      <input
+        [formControl]="amountTransferControl"
+        type="text"
+        class="form-control"
+        placeholder="0.0"
+        aria-label="Amount"
+        [ngClass]="{
+          'is-invalid':
+            amountTransferControl.errors &&
+            (amountTransferControl.touched || amountTransferControl.dirty)
+        }"
+      />
+      <span class="input-group-prepend">
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="setTransferMaxValue()"
+          [disabled]="balance === undefined"
+        >
+          Max
+        </button>
+      </span>
+      <div class="invalid-feedback px-3 py-2">
+        <strong>Invalid Amount</strong>
+      </div>
+    </div>
+  </div>
+
+  <ng-container>
+    <button
+      type="button"
+      class="btn btn-primary btn-block"
+      (click)="transfer()"
+      [disabled]="formGroup.invalid || address === undefined"
+    >
+      Transfer
+    </button>
+  </ng-container>
+</form>

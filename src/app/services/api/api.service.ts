@@ -21,6 +21,11 @@ import {
   SessionUser,
 } from './interfaces/auth'
 import { TezosNode } from './interfaces/nodes'
+import {
+  NewOperationTemplate,
+  OperationTemplate,
+  OperationTemplateParameterValue,
+} from './interfaces/operationTemplate'
 
 const pageLimit = 2
 
@@ -34,6 +39,7 @@ export class ApiService {
   private static usersPath = '/users'
   private static operationRequestsPath = '/operation-requests'
   private static operationApprovalsPath = '/operation-approvals'
+  private static operationTemplatesPath = '/operation-templates'
 
   constructor(private readonly http: HttpClient) {}
 
@@ -197,8 +203,56 @@ export class ApiService {
     )
   }
 
+  getOperationTemplates(contractId: string): Observable<OperationTemplate[]> {
+    return this.http.get<OperationTemplate[]>(
+      this.getUrl(
+        `${ApiService.operationTemplatesPath}?contract_id=${contractId}`
+      ),
+      { withCredentials: true }
+    )
+  }
+
+  getOperationTemplate(Id: string): Observable<OperationTemplate> {
+    return this.http.get<OperationTemplate>(
+      this.getUrl(`${ApiService.operationTemplatesPath}/${Id}`),
+      { withCredentials: true }
+    )
+  }
+
+  addOperationTemplate(
+    newOperationTemplate: NewOperationTemplate
+  ): Observable<OperationTemplate> {
+    return this.http.post<OperationTemplate>(
+      this.getUrl(ApiService.operationTemplatesPath),
+      newOperationTemplate,
+      { withCredentials: true }
+    )
+  }
+
+  deleteOperationTemplate(operationTemplateId: string): Observable<void> {
+    return this.http.delete<void>(
+      this.getUrl(
+        `${ApiService.operationTemplatesPath}/${operationTemplateId}`
+      ),
+      { withCredentials: true }
+    )
+  }
+
+  getLambda(
+    operationTemplateId: string,
+    parameterValues: OperationTemplateParameterValue[]
+  ): Observable<any> {
+    return this.http.post(
+      this.getUrl(
+        `${ApiService.operationTemplatesPath}/${operationTemplateId}/lambda`
+      ),
+      parameterValues,
+      { withCredentials: true }
+    )
+  }
+
   // method created to ease testing
   private getUrl(path: string): string {
-    return `${environment.wrappedBackendUrl}/api/v1${path}`
+    return `${environment.backendUrl}/api/v1${path}`
   }
 }

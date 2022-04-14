@@ -8,103 +8,14 @@
           [active]="selectedTab === 'tab-transfer'"
           (selectTab)="onSelect($event)"
         >
-          <div class="my-5">
-            <label>Receiving Address</label>
-            <div class="form-group mb-3">
-              <input
-                [formControl]="receivingAddressControl"
-                type="text"
-                class="form-control"
-                placeholder="tz1.."
-                aria-label="Address"
-                [ngClass]="{
-                  'is-invalid':
-                    receivingAddressControl.errors &&
-                    (receivingAddressControl.touched ||
-                      receivingAddressControl.dirty)
-                }"
-              />
-              <div class="invalid-feedback px-3 py-2 px-3 py-2">
-                <strong>Invalid Address</strong>
-              </div>
-            </div>
-            <label class="d-flex justify-content-between"
-              >Amount
-              <span *ngIf="balance$ | async as balance"
-                >Balance:
-                {{
-                  balance
-                    | amountConverter
-                      : {
-                          decimals: 2,
-                          symbol: '$'
-                        }
-                    | async
-                }}
-              </span>
-            </label>
-            <div class="input-group">
-              <!-- <div class="input-group-prepend">
-                <span class="input-group-text">
-                  <img
-                    width="32px"
-                    height="32px"
-                    [src]="activeContractImagePath$ | async"
-                    class="mr-2"
-                  />
-                  {{ activeContract.symbol }}
-                </span>
-              </div> -->
-              <input
-                [formControl]="amountTransferControl"
-                type="text"
-                class="form-control"
-                placeholder="0.0"
-                aria-label="Amount"
-                [ngClass]="{
-                  'is-invalid':
-                    amountTransferControl.errors &&
-                    (amountTransferControl.touched ||
-                      amountTransferControl.dirty)
-                }"
-              />
-              <span class="input-group-prepend">
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  (click)="setTransferMaxValue()"
-                >
-                  Max
-                </button>
-              </span>
-              <div class="invalid-feedback px-3 py-2">
-                <strong>Invalid Amount</strong>
-              </div>
-            </div>
-          </div>
-
-          <ng-container *ngIf="address$ | async as address; else connectButton">
-            <button
-              type="button"
-              class="btn btn-primary btn-block"
-              (click)="transfer()"
-              [disabled]="
-                amountTransferControl.invalid && receivingAddressControl.invalid
-              "
-            >
-              Transfer
-            </button>
-          </ng-container>
-
-          <ng-template #connectButton>
-            <button
-              type="button"
-              class="btn btn-primary btn-block"
-              (click)="connectWallet()"
-            >
-              Connect Wallet
-            </button>
-          </ng-template>
+          <app-transfer-form
+            [allTokenMetadata]="allTokenMetadata$ | async"
+            [selectedTokenMetadataIndex]="activeTokenMetadataIndex$ | async"
+            [balance]="balance$ | async"
+            [address]="address$ | async"
+            (onTransfer)="transfer($event)"
+            (onSelectedTokenMetadata)="selectedTokenMetadata($event)"
+          ></app-transfer-form>
         </tab>
         <tab
           heading="Operation"
@@ -112,84 +23,15 @@
           [active]="selectedTab === 'tab-operation'"
           (selectTab)="onSelect($event)"
         >
-          <div class="my-5">
-            <label>Lambda</label>
-
-            <div class="mb-3">
-              <label>Enter Michelson Lambda reprepsenting the operation</label>
-              <div class="input-group input-group__two-items">
-                <!-- <div class="input-group-prepend">
-                  <span class="input-group-text">
-                    <img
-                      width="32px"
-                      height="32px"
-                      [src]="activeContractImagePath$ | async"
-                      class="mr-2"
-                    />
-                    {{ activeContract.symbol }}
-                  </span>
-                </div> -->
-                <textarea
-                  [formControl]="lambdaControl"
-                  type="text"
-                  class="form-control"
-                  placeholder="[]"
-                  aria-label="Amount"
-                  [ngClass]="{
-                    'is-invalid':
-                      lambdaControl.errors &&
-                      (lambdaControl.touched || lambdaControl.dirty)
-                  }"
-                ></textarea>
-                <div class="invalid-feedback px-3 py-2">
-                  <strong>Invalid lambda</strong>
-                </div>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label>Expected ledger hash (optional)</label>
-              <div class="input-group input-group__two-items">
-                <input
-                  [formControl]="ledgerHashControl"
-                  type="text"
-                  class="form-control"
-                  aria-label="Ledger Hash"
-                  [ngClass]="{
-                    'is-invalid':
-                      ledgerHashControl.errors &&
-                      (ledgerHashControl.touched || ledgerHashControl.dirty)
-                  }"
-                />
-                <div class="invalid-feedback px-3 py-2">
-                  <strong>Invalid ledger hash</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <ng-container *ngIf="address$ | async as address; else connectButton">
-            <button
-              type="button"
-              class="btn btn-primary btn-block"
-              (click)="operation()"
-              [disabled]="
-                lambdaControl.invalid ||
-                (busyOpeartionRequests$ | async) ||
-                (!(isGatekeeper$ | async) && !(isSigner$ | async)) ||
-                !formGroup.valid
-              "
-            >
-              <ng-container *ngIf="busyOpeartionRequests$ | async"
-                ><span
-                  class="spinner-border spinner-border-sm mr-1"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              </ng-container>
-              Request Operation
-            </button>
-          </ng-container>
+          <app-operation-form
+            [isGatekeeper]="isGatekeeper$ | async"
+            [isSigner]="isSigner$ | async"
+            [showSpinner]="busyOpeartionRequests$ | async"
+            [templates]="operationTemplates$ | async"
+            [selectedTemplate]="selectedOperationTemplate$ | async"
+            (onRequestOperation)="operation($event)"
+            (onSelectedTemplate)="selectOperationTemplate($event)"
+          ></app-operation-form>
         </tab>
       </tabset>
     </div>

@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  wrappedBackendUrl: 'https://foundry-backend.wrappedtz.io',
+  backendUrl: 'https://multisig-orchestration-backend.prod.gke.papers.tech',
 }

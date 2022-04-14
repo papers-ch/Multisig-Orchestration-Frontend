@@ -18,27 +18,15 @@ import { SessionUser } from 'src/app/services/api/interfaces/auth'
   templateUrl: './header-item.component.html',
   styleUrls: ['./header-item.component.scss'],
 })
-export class HeaderItemComponent implements OnInit {
+export class HeaderItemComponent {
   public sessionUser$: Observable<SessionUser | undefined>
   public username$: Observable<string | undefined>
   public activeContract$: Observable<Contract | undefined>
   public contracts$: Observable<Contract[]>
-  // public imageSrcMap$: Observable<Map<string, string>>
 
   constructor(private readonly store$: Store<fromRoot.State>) {
     this.activeContract$ = this.store$.select(getActiveContract)
     this.contracts$ = this.store$.select(getContracts)
-    // this.imageSrcMap$ = this.contracts$.pipe(
-    //   map(
-    //     (contracts) =>
-    //       new Map<string, string>(
-    //         contracts.map((contract) => [
-    //           contract.id,
-    //           `/assets/img/${contract.symbol.toLowerCase()}.svg`,
-    //         ])
-    //       )
-    //   )
-    // )
     this.sessionUser$ = this.store$.select(getSessionUser)
     this.username$ = combineLatest([
       this.store$.select(getActiveAccount),
@@ -60,13 +48,17 @@ export class HeaderItemComponent implements OnInit {
     )
   }
 
-  ngOnInit(): void {}
-
-  reset(): void {
-    this.store$.dispatch(actions.disconnectWallet())
+  public toggleWallet(): void {
+    this.username$.pipe(take(1)).subscribe((username) => {
+      if (username === undefined) {
+        this.store$.dispatch(actions.connectWallet())
+      } else {
+        this.store$.dispatch(actions.disconnectWallet())
+      }
+    })
   }
 
-  changeContract(contract: Contract) {
+  public changeContract(contract: Contract) {
     this.activeContract$.pipe(take(1)).subscribe((currentActive) => {
       if (currentActive?.id !== contract.id) {
         this.store$.dispatch(actions.setActiveContract({ contract }))
