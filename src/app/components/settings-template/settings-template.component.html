@@ -1,8 +1,9 @@
-<div class="card mt-5">
+<div class="card">
   <div class="card-body">
     <h4 class="text-primary pb-4">
       <strong>Templates</strong>
     </h4>
+    <label>Template</label>
     <div class="form-group">
       <select
         [formControl]="templateSelectionControl"
@@ -82,7 +83,7 @@
         *ngFor="let form of templateParameterControls.controls; let idx = index"
       >
         <div class="row mb-1">
-          <div class="col">
+          <div class="col pr-0">
             <input
               [formControl]="form.controls.nameControl"
               type="text"
@@ -91,7 +92,7 @@
               aria-label="name"
             />
           </div>
-          <div class="col">
+          <div class="col pr-0">
             <input
               [formControl]="form.controls.keyControl"
               type="text"
@@ -100,32 +101,31 @@
               aria-label="name"
             />
           </div>
-          <div class="col">
+          <div class="col pr-0">
             <select
               [formControl]="form.controls.typeControl"
               class="form-control custom-select"
             >
+              <option value="" disabled selected>Type</option>
               <option selected value="number">Number</option>
               <option selected value="string">String</option>
               <option selected value="bytes">Bytes</option>
               <option selected value="address">Address</option>
             </select>
           </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col col-sm-4">
+          <div class="col-1">
             <button
               type="button"
-              class="btn btn-light btn-block"
+              class="btn btn-light"
               (click)="removeParameter(idx)"
             >
-              Remove
+              <img src="/assets/img/trash-can.svg" width="18px" />
             </button>
           </div>
         </div>
       </ng-container>
-      <div class="row">
-        <div class="col col-sm-6">
+      <div class="row pt-2">
+        <div class="col-md-3 col-12">
           <button
             type="button"
             class="btn btn-primary btn-block"
@@ -138,7 +138,7 @@
       <button
         (click)="addTemplate()"
         type="button"
-        class="btn btn-primary btn-block mt-3"
+        class="btn btn-primary btn-block mt-5"
         [disabled]="formGroup.invalid"
       >
         Add Template

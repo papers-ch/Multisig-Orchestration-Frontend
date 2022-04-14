@@ -1,62 +1,68 @@
-<div class="card" *ngIf="activeContract$ | async as activeContract">
-  <div class="card-body">
-    <div>
-      <tabset *ngIf="selectedTab$ | async as selectedTab">
-        <tab
-          heading="Transfer"
-          id="tab-transfer"
-          [active]="selectedTab === 'tab-transfer'"
-          (selectTab)="onSelect($event)"
-        >
-          <app-transfer-form
-            [allTokenMetadata]="allTokenMetadata$ | async"
-            [selectedTokenMetadataIndex]="activeTokenMetadataIndex$ | async"
-            [balance]="balance$ | async"
-            [address]="address$ | async"
-            (onTransfer)="transfer($event)"
-            (onSelectedTokenMetadata)="selectedTokenMetadata($event)"
-          ></app-transfer-form>
-        </tab>
-        <tab
-          heading="Operation"
-          id="tab-operation"
-          [active]="selectedTab === 'tab-operation'"
-          (selectTab)="onSelect($event)"
-        >
-          <app-operation-form
-            [isGatekeeper]="isGatekeeper$ | async"
-            [isSigner]="isSigner$ | async"
-            [showSpinner]="busyOpeartionRequests$ | async"
-            [templates]="operationTemplates$ | async"
-            [selectedTemplate]="selectedOperationTemplate$ | async"
-            (onRequestOperation)="operation($event)"
-            (onSelectedTemplate)="selectOperationTemplate($event)"
-          ></app-operation-form>
-        </tab>
-      </tabset>
+<div class="row justify-content-center card--container__main h-100">
+  <div class="col col-md-5">
+    <div class="card" *ngIf="activeContract$ | async as activeContract">
+      <div class="card-body">
+        <div>
+          <tabset *ngIf="selectedTab$ | async as selectedTab">
+            <tab
+              heading="Transfer"
+              id="tab-transfer"
+              [active]="selectedTab === 'tab-transfer'"
+              (selectTab)="onSelect($event)"
+            >
+              <app-transfer-form
+                [allTokenMetadata]="allTokenMetadata$ | async"
+                [selectedTokenMetadataIndex]="activeTokenMetadataIndex$ | async"
+                [balance]="balance$ | async"
+                [address]="address$ | async"
+                (onTransfer)="transfer($event)"
+                (onSelectedTokenMetadata)="selectedTokenMetadata($event)"
+              ></app-transfer-form>
+            </tab>
+            <tab
+              heading="Operation"
+              id="tab-operation"
+              [active]="selectedTab === 'tab-operation'"
+              (selectTab)="onSelect($event)"
+            >
+              <div class="pt-3">
+                <app-operation-form
+                  [isGatekeeper]="isGatekeeper$ | async"
+                  [isSigner]="isSigner$ | async"
+                  [showSpinner]="busyOpeartionRequests$ | async"
+                  [templates]="operationTemplates$ | async"
+                  [selectedTemplate]="selectedOperationTemplate$ | async"
+                  (onRequestOperation)="operation($event)"
+                  (onSelectedTemplate)="selectOperationTemplate($event)"
+                ></app-operation-form>
+              </div>
+            </tab>
+          </tabset>
+        </div>
+      </div>
     </div>
+
+    <ng-container
+      *ngIf="{
+        isGatekeeper: isGatekeeper$ | async,
+        isSigner: isSigner$ | async
+      } as userType"
+    >
+      <ng-container
+        *ngIf="
+          (userType.isGatekeeper || userType.isSigner) &&
+          (selectedTab$ | async) === 'tab-operation'
+        "
+      >
+        <operation-request-group
+          name="Operation"
+          [kind]="'operation'"
+          [openOperationRequestList]="openOperationRequests$ | async"
+          [approvedOperationRequestList]="approvedOperationRequests$ | async"
+          [injectedOperationRequestList]="injectedOperationRequests$ | async"
+        >
+        </operation-request-group>
+      </ng-container>
+    </ng-container>
   </div>
 </div>
-
-<ng-container
-  *ngIf="{
-    isGatekeeper: isGatekeeper$ | async,
-    isSigner: isSigner$ | async
-  } as userType"
->
-  <ng-container
-    *ngIf="
-      (userType.isGatekeeper || userType.isSigner) &&
-      (selectedTab$ | async) === 'tab-operation'
-    "
-  >
-    <operation-request-group
-      name="Operation"
-      [kind]="'operation'"
-      [openOperationRequestList]="openOperationRequests$ | async"
-      [approvedOperationRequestList]="approvedOperationRequests$ | async"
-      [injectedOperationRequestList]="injectedOperationRequests$ | async"
-    >
-    </operation-request-group>
-  </ng-container>
-</ng-container>

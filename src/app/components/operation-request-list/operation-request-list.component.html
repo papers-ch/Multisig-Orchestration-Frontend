@@ -1,6 +1,6 @@
 <div class="card mt-5" *ngIf="operationRequestList.results.length > 0">
   <div class="card-body">
-    <h5>{{ title }}</h5>
+    <h5 class="mb-3">{{ title }}</h5>
     <operation-request
       *ngFor="let request of operationRequestList.results"
       [operationRequest]="request"
