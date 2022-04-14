@@ -18,6 +18,8 @@ import { SessionUser } from './services/api/interfaces/auth'
 import { Tab } from './pages/dashboard/tab'
 import { ErrorDescription } from './components/error-item/error-description'
 import { TezosNode } from './services/api/interfaces/nodes'
+import { TokenMetadata } from '@taquito/tzip12'
+import { OperationTemplate } from './services/api/interfaces/operationTemplate'
 
 interface Busy {
   activeAccount: boolean
@@ -39,6 +41,8 @@ export interface State {
   contracts: Contract[]
   activeContract: Contract | undefined
   contractCounters: Map<string, number>
+  allTokenMetadata: Map<string, TokenMetadata[]>
+  activeTokenId: number | undefined
   users: User[]
   signableMessages: Map<string, SignableMessageInfo>
   balance: BigNumber | undefined
@@ -61,6 +65,9 @@ export interface State {
   signersToAdd: string[]
   newThreshold: number | undefined
 
+  operationTemplates: OperationTemplate[]
+  selectedOperationTemplate: OperationTemplate | undefined
+
   busy: Busy
 }
 
@@ -73,6 +80,8 @@ export const initialState: State = {
   contracts: [],
   activeContract: undefined,
   contractCounters: new Map<string, number>(),
+  allTokenMetadata: new Map<string, TokenMetadata[]>(),
+  activeTokenId: undefined,
   users: [],
   signableMessages: new Map<string, SignableMessageInfo>(),
   balance: undefined,
@@ -90,6 +99,9 @@ export const initialState: State = {
   signersToRemove: [],
   signersToAdd: [],
   newThreshold: undefined,
+
+  operationTemplates: [],
+  selectedOperationTemplate: undefined,
 
   busy: {
     activeAccount: false,
@@ -351,6 +363,21 @@ export const reducer = createReducer(
       },
     }
   }),
+  on(
+    actions.getAllTokenMetadataSucceeded,
+    (state, { contract, allTokenMetadata }) => {
+      const tokenMetadata = new Map(state.allTokenMetadata)
+      tokenMetadata.set(contract.id, allTokenMetadata)
+      return {
+        ...state,
+        allTokenMetadata: tokenMetadata,
+      }
+    }
+  ),
+  on(actions.setActiveTokenId, (state, { tokenId }) => ({
+    ...state,
+    activeTokenId: tokenId,
+  })),
   on(actions.getSignableMessage, (state) => ({
     ...state,
     busy: {
@@ -478,5 +505,14 @@ export const reducer = createReducer(
           state.busy.changeKeysOperationRequests,
       },
     })
-  )
+  ),
+  on(actions.loadOperationTemplatesSucceeded, (state, { templates }) => ({
+    ...state,
+    operationTemplates: templates,
+    selectedOperationTemplate: undefined,
+  })),
+  on(actions.setSelectedOperationTemplate, (state, { template }) => ({
+    ...state,
+    selectedOperationTemplate: template,
+  }))
 )

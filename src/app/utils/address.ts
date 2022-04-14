@@ -1,3 +1,5 @@
+import { Validators } from '@angular/forms'
+
 export const validateAddress = (address: string | undefined | null) => {
   if (
     address === undefined ||
@@ -11,3 +13,10 @@ export const validateAddress = (address: string | undefined | null) => {
     throw new Error(`Invalid address: ${address}`)
   }
 }
+
+export const createAddressValidators = () => [
+  Validators.required,
+  Validators.minLength(36),
+  Validators.maxLength(36),
+  Validators.pattern('^(tz1|tz2|tz3|KT1)[1-9A-Za-z]{33}'),
+]

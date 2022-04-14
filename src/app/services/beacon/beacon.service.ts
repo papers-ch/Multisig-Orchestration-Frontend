@@ -13,7 +13,6 @@ import BigNumber from 'bignumber.js'
 import { BeaconWallet } from '@taquito/beacon-wallet'
 
 import { RpcClient } from '@taquito/rpc'
-import { Uint8ArrayConsumer } from '@taquito/local-forging'
 import { Contract } from '../api/interfaces/contract'
 import { Store } from '@ngrx/store'
 import * as fromRoot from '../../reducers/index'
@@ -21,9 +20,6 @@ import { Observable } from 'rxjs'
 import { getSelectedTezosNode } from 'src/app/app.selectors'
 import { map, take } from 'rxjs/operators'
 import { isNotNullOrUndefined } from 'src/app/app.operators'
-
-const MichelsonCodec = require('@taquito/local-forging/dist/lib/michelson/codec')
-const Codec = require('@taquito/local-forging/dist/lib/codec')
 
 @Injectable({
   providedIn: 'root',
@@ -150,60 +146,5 @@ export class BeaconService {
     storage = await storagePromise
     this.dataCache.set(contract.address, storage)
     return storage
-  }
-
-  private async fetchPackedData(
-    cacheKey: string,
-    data: any,
-    dataType: any
-  ): Promise<{
-    packed: string
-    gas: BigNumber | 'unaccounted' | undefined
-  }> {
-    let packedData = this.dataCache.get(cacheKey)
-    if (packedData) {
-      return packedData
-    }
-    const promise = this.pendingRequests.get(cacheKey)
-    if (promise) {
-      return promise
-    }
-    const client = await this.rpcClient.pipe(take(1)).toPromise()
-    const packDataPromise = client
-      .packData({
-        data: data,
-        type: dataType,
-      })
-      .finally(() => this.pendingRequests.delete(cacheKey))
-    this.pendingRequests.set(cacheKey, packDataPromise)
-    packedData = await packDataPromise
-    this.dataCache.set(cacheKey, packedData)
-    return packedData
-  }
-
-  private async getFA1Balance(contract: Contract, userAddress: string) {
-    const client = await this.rpcClient.pipe(take(1)).toPromise()
-
-    const packedData = await this.fetchPackedData(
-      `${contract.address}-ledger-${userAddress}`,
-      {
-        prim: 'Pair',
-        args: [{ string: 'ledger' }, { string: userAddress }],
-      },
-      {
-        prim: 'pair',
-        args: [{ prim: 'string' }, { prim: 'address' }],
-      }
-    )
-
-    const storage: any = await this.fetchStorage(contract)
-    const bigMap = storage['0'] ?? storage.dataMap
-    const value: any = await bigMap.get(packedData.packed)
-
-    const decodedValue = MichelsonCodec.valueDecoder(
-      Uint8ArrayConsumer.fromHexString(value.slice(2))
-    )
-
-    return new BigNumber(decodedValue.args[0].int)
   }
 }

@@ -1,0 +1,104 @@
+<form [formGroup]="formGroup">
+  <label>Templates</label>
+  <div class="mb-1">
+    <select
+      [formControl]="templateSelectionControl"
+      class="form-control custom-select"
+    >
+      <option selected [ngValue]="null">None</option>
+      <option *ngFor="let template of templates" [ngValue]="template.id">
+        {{ template.name }}
+      </option>
+    </select>
+  </div>
+  <div class="my-5">
+    <ng-container *ngIf="selectedTemplate === undefined">
+      <div class="mb-3">
+        <label>Enter Michelson Lambda reprepsenting the operation</label>
+        <div class="input-group input-group__two-items">
+          <textarea
+            [formControl]="lambdaControl"
+            type="text"
+            class="form-control"
+            placeholder="[]"
+            aria-label="Lambda"
+            [ngClass]="{
+              'is-invalid':
+                lambdaControl.errors &&
+                (lambdaControl.touched || lambdaControl.dirty)
+            }"
+          ></textarea>
+          <div class="invalid-feedback px-3 py-2">
+            <strong>Invalid lambda</strong>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="selectedTemplate !== undefined">
+      <div class="mb-3">
+        <label>Parameters</label>
+        <ng-container
+          *ngFor="let parameter of selectedTemplate.parameters; let idx = index"
+        >
+          <div class="mb-3">
+            <label>{{ parameter.name }}</label>
+            <div class="input-group input-group__two-items">
+              <input
+                [formControl]="parametersControl.controls[idx]"
+                [type]="
+                  parameterTypeToImputType(parameter.parameter_value_type)
+                "
+                class="form-control"
+                [ngClass]="{
+                  'is-invalid':
+                    parametersControl.controls[idx].errors &&
+                    (parametersControl.controls[idx].touched ||
+                      parametersControl.controls[idx].dirty)
+                }"
+              />
+              <div class="invalid-feedback px-3 py-2">
+                <strong>Invalid parameter</strong>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+
+    <div class="mb-3">
+      <label>Expected ledger hash (optional)</label>
+      <div class="input-group input-group__two-items">
+        <input
+          [formControl]="ledgerHashControl"
+          type="text"
+          class="form-control"
+          aria-label="Ledger Hash"
+          [ngClass]="{
+            'is-invalid':
+              ledgerHashControl.errors &&
+              (ledgerHashControl.touched || ledgerHashControl.dirty)
+          }"
+        />
+        <div class="invalid-feedback px-3 py-2">
+          <strong>Invalid ledger hash</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-primary btn-block"
+    (click)="operation()"
+    [disabled]="submitDisabled"
+  >
+    <ng-container *ngIf="showSpinner"
+      ><span
+        class="spinner-border spinner-border-sm mr-1"
+        role="status"
+        aria-hidden="true"
+      ></span>
+    </ng-container>
+    Request Operation
+  </button>
+</form>

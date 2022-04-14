@@ -2175,6 +2175,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@taquito/tzip12@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "@taquito/tzip12@npm:12.0.0"
+  dependencies:
+    "@taquito/michelson-encoder": ^12.0.0
+    "@taquito/taquito": ^12.0.0
+    "@taquito/tzip16": ^12.0.0
+  checksum: 6c0d452c95cb7b80ff105f603034aa867f8bfbb5a876ce59b26baa30e83b2349004b95a20c222738b58aca019e10351bc1006f2ea9c970805bfd1046f405542a
+  languageName: node
+  linkType: hard
+
+"@taquito/tzip16@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "@taquito/tzip16@npm:12.0.0"
+  dependencies:
+    "@taquito/http-utils": ^12.0.0
+    "@taquito/michelson-encoder": ^12.0.0
+    "@taquito/rpc": ^12.0.0
+    "@taquito/taquito": ^12.0.0
+    "@taquito/utils": ^12.0.0
+    bignumber.js: ^9.0.2
+    crypto-js: ^4.1.1
+  checksum: f4a1f923561d387f704d01cbc6a87aa6e23fa7e3aa9b0c299df0c727f395cda5e801602c0d538961b378386361fdc9bcbb7c4d0c0ccfb2627da1a0d0b8d9803b
+  languageName: node
+  linkType: hard
+
 "@taquito/utils@npm:^12.0.0":
   version: 12.0.0
   resolution: "@taquito/utils@npm:12.0.0"
@@ -4365,6 +4391,13 @@ __metadata:
     randombytes: ^2.0.0
     randomfill: ^1.0.3
   checksum: c1609af82605474262f3eaa07daa0b2140026bd264ab316d4bf1170272570dbe02f0c49e29407fe0d3634f96c507c27a19a6765fb856fed854a625f9d15618e2
+  languageName: node
+  linkType: hard
+
+"crypto-js@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "crypto-js@npm:4.1.1"
+  checksum: b3747c12ee3a7632fab3b3e171ea50f78b182545f0714f6d3e7e2858385f0f4101a15f2517e033802ce9d12ba50a391575ff4638c9de3dd9b2c4bc47768d5425
   languageName: node
   linkType: hard
 
@@ -7944,6 +7977,7 @@ __metadata:
     "@taquito/rpc": 12.0.0
     "@taquito/signer": 12.0.0
     "@taquito/taquito": 12.0.0
+    "@taquito/tzip12": ^12.0.0
     "@types/jasmine": ~3.6.0
     "@types/jasminewd2": ~2.0.3
     "@types/node": ^17.0.23

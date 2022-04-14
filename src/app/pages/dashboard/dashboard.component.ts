@@ -2,14 +2,8 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core'
 import { Store } from '@ngrx/store'
 import * as fromRoot from '../../reducers/index'
 import * as actions from '../../app.actions'
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { combineLatest, Observable, Subscription } from 'rxjs'
 import BigNumber from 'bignumber.js'
-import {
-  convertBigNumberToAmount,
-  convertAmountToBigNumber,
-  amountValidator,
-} from 'src/app/utils/amount'
 import { filter, map, take } from 'rxjs/operators'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
@@ -30,17 +24,22 @@ import {
   getOpenOperationRequests,
   getSelectedTab,
   getSessionUser,
-  getUsers,
   isGatekeeper,
   isSigner,
   getGatekeepers,
+  getActiveTokenMetadata,
+  getAllTokenMetadata,
+  getActiveTokenId,
+  getSelectedOperationTemplate,
+  getOperationTemplates,
 } from 'src/app/app.selectors'
 import { Tab } from './tab'
 import { isNotNullOrUndefined } from 'src/app/app.operators'
-import { validateAddress } from 'src/app/utils/address'
 import { PagedResponse } from 'src/app/services/api/interfaces/common'
 import { signIn } from 'src/app/common/auth'
 import { loadContractsIfNeeded } from 'src/app/common/contracts'
+import { TokenMetadata } from '@taquito/tzip12'
+import { OperationTemplate } from 'src/app/services/api/interfaces/operationTemplate'
 
 @Component({
   selector: 'app-dashboard',
@@ -52,10 +51,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   public selectedTab$: Observable<Tab> = new Observable<Tab>()
 
-  public receivingAddressControl: FormControl
-  public amountTransferControl: FormControl
-  public lambdaControl: FormControl
-  public ledgerHashControl: FormControl
   public address$: Observable<string | undefined>
 
   public openOperationRequests$: Observable<
@@ -68,32 +63,51 @@ export class DashboardComponent implements OnInit, OnDestroy {
     PagedResponse<OperationRequest> | undefined
   >
 
-  public users$: Observable<User[]>
-  public signers$: Observable<User[]>
+  public operationTemplates$: Observable<OperationTemplate[]>
+  public selectedOperationTemplate$: Observable<OperationTemplate | undefined>
 
+  public signers$: Observable<User[]>
+  public gatekeepers$: Observable<User[]>
   public isGatekeeper$: Observable<boolean>
   public isSigner$: Observable<boolean>
-  public balance$: Observable<BigNumber | undefined>
+  public balance$: Observable<
+    { value: BigNumber; decimals: number; symbol: string } | undefined
+  >
   public activeContract$: Observable<Contract>
-
-  private subscriptions: Subscription[] = []
-
+  public activeTokenMetadata$: Observable<TokenMetadata>
+  public allTokenMetadata$: Observable<TokenMetadata[] | undefined>
+  public activeTokenMetadataIndex$: Observable<number | undefined>
   public busyOpeartionRequests$: Observable<boolean>
 
-  public gatekeepers$: Observable<User[]>
-  public formGroup: FormGroup
+  private subscriptions: Subscription[] = []
 
   constructor(
     private readonly store$: Store<fromRoot.State>,
     private readonly route: ActivatedRoute,
-    private router: Router,
-    private formBuilder: FormBuilder
+    private router: Router
   ) {
     this.store$.dispatch(actions.loadTezosNodes())
     this.activeContract$ = this.store$
       .select(getActiveContract)
       .pipe(isNotNullOrUndefined())
-
+    this.activeTokenMetadata$ = this.store$
+      .select(getActiveTokenMetadata)
+      .pipe(isNotNullOrUndefined())
+    this.allTokenMetadata$ = this.store$.select(getAllTokenMetadata)
+    this.activeTokenMetadataIndex$ = combineLatest([
+      this.allTokenMetadata$,
+      this.store$.select(getActiveTokenId),
+    ]).pipe(
+      map(([allTokenMetadata, activeTokenId]) => {
+        let index = -1
+        if (allTokenMetadata !== undefined && activeTokenId !== undefined) {
+          index = allTokenMetadata.findIndex(
+            (token) => token.token_id === activeTokenId
+          )
+        }
+        return index >= 0 ? index : undefined
+      })
+    )
     const signInSub = signIn(this.store$)
     this.subscriptions.push(signInSub)
     this.selectedTab$ = this.store$.select(getSelectedTab)
@@ -110,12 +124,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
       getInjectedOperationRequests
     )
 
-    this.users$ = this.store$.select(getUsers)
+    const templatesSub = this.activeContract$.subscribe(() =>
+      this.store$.dispatch(actions.loadOperationTemplates())
+    )
+    this.subscriptions.push(templatesSub)
+
+    this.operationTemplates$ = this.store$.select(getOperationTemplates)
+    this.selectedOperationTemplate$ = this.store$.select(
+      getSelectedOperationTemplate
+    )
+
     this.signers$ = this.store$.select(getSigners)
     this.address$ = this.store$.select(getAddress)
     this.isGatekeeper$ = this.store$.select(isGatekeeper)
     this.isSigner$ = this.store$.select(isSigner)
-    this.balance$ = this.store$.select(getBalance)
+    this.balance$ = combineLatest([
+      this.store$.select(getBalance),
+      this.activeTokenMetadata$,
+    ]).pipe(
+      map(([balance, tokenMetadata]) =>
+        balance !== undefined
+          ? {
+              value: balance,
+              decimals: tokenMetadata.decimals,
+              symbol: tokenMetadata.symbol ?? '',
+            }
+          : undefined
+      )
+    )
     this.busyOpeartionRequests$ = this.store$.select(getBusyOperationRequests)
     this.gatekeepers$ = this.store$.select(getGatekeepers)
     this.subscriptions.push(
@@ -138,52 +174,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       combineLatest([
         this.store$.select(getActiveAccount),
-        this.store$.select(getActiveContract),
+        this.store$.select(getActiveTokenMetadata),
       ])
         .pipe(
           filter(
-            ([account, contract]) =>
-              account !== undefined && contract !== undefined
+            ([account, tokenMetadata]) =>
+              account !== undefined && tokenMetadata !== undefined
           )
         )
         .subscribe(() => {
           this.store$.dispatch(actions.loadBalance())
         })
     )
-
-    this.receivingAddressControl = new FormControl('', [
-      Validators.required,
-      Validators.minLength(36),
-      Validators.maxLength(36),
-      Validators.pattern('^(tz1|tz2|tz3|KT1)[1-9A-Za-z]{33}'),
-    ])
-
-    this.lambdaControl = new FormControl(null, [Validators.required])
-
-    this.ledgerHashControl = new FormControl()
-
-    this.amountTransferControl = new FormControl()
-
-    this.subscriptions.push(
-      combineLatest([this.balance$, this.activeContract$]).subscribe(
-        ([balance, contract]) => {
-          this.amountTransferControl.setValidators([
-            Validators.min(0),
-            Validators.max(balance?.toNumber() ?? 0),
-            Validators.required,
-            Validators.pattern('^[+-]?(\\d*\\.)?\\d+$'),
-            // TODO: get decimals from token metadata
-            amountValidator(balance ?? new BigNumber(0), 2),
-          ])
-          this.amountTransferControl.updateValueAndValidity()
-        }
-      )
-    )
-
-    this.formGroup = this.formBuilder.group({})
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.route.params.pipe(take(1)).subscribe((params) => {
       if (params.tab === 'operation') {
         this.store$.dispatch(actions.selectTab({ tab: Tab.OPERATION }))
@@ -193,107 +198,50 @@ export class DashboardComponent implements OnInit, OnDestroy {
     })
   }
 
-  ngOnDestroy() {
+  public ngOnDestroy() {
     for (const subscription of this.subscriptions) {
       subscription.unsubscribe()
     }
   }
 
-  connectWallet() {
-    this.store$.dispatch(actions.connectWallet())
-  }
-
-  private get ledgerHash(): string | null {
-    if (this.ledgerHashControl.value === undefined) {
-      return null
-    }
-    const ledgerHash = this.ledgerHashControl.value
-    if (typeof ledgerHash !== 'string') {
-      return null
-    }
-    const ledgerHashTrimmed = ledgerHash.trim()
-    if (ledgerHashTrimmed.length === 0) {
-      return null
-    }
-    return ledgerHashTrimmed
-  }
-
-  operation() {
-    this.submitOperationRequest(
-      OperationRequestKind.OPERATION,
-      JSON.parse(this.lambdaControl.value),
-      this.ledgerHash
-    )
-  }
-
-  private submitOperationRequest(
-    kind: OperationRequestKind,
-    lambda: any,
-    ledgerHash: string | null
-  ) {
+  public operation(options: { lambda: any; ledgerHash: string | null }) {
     this.activeContract$.pipe(take(1)).subscribe((contract) => {
       this.store$.dispatch(
         actions.submitOperationRequest({
           newOperationRequest: {
             contract_id: contract.id,
-            kind,
-            lambda,
+            kind: OperationRequestKind.OPERATION,
+            lambda: options.lambda,
             threshold: null,
             proposed_signers: null,
-            ledger_hash: ledgerHash ?? null,
+            ledger_hash: options.ledgerHash,
           },
         })
       )
     })
   }
 
-  transfer() {
-    const targetAddress: string | undefined | null =
-      this.receivingAddressControl.value
-    validateAddress(targetAddress)
-    this.activeContract$.pipe(take(1)).subscribe((contract) => {
-      this.store$.dispatch(
-        actions.transferOperation({
-          transferAmount: convertAmountToBigNumber(
-            this.amountTransferControl.value,
-            2 // TODO: get decimals from token metadata
-          ),
-          receivingAddress: this.receivingAddressControl.value,
-        })
-      )
-    })
+  public transfer(options: { amount: BigNumber; receivingAddress: string }) {
+    this.store$.dispatch(
+      actions.transferOperation({
+        transferAmount: options.amount,
+        receivingAddress: options.receivingAddress,
+      })
+    )
   }
 
-  onSelect(event: any): void {
+  public selectedTokenMetadata(tokenMetadata: TokenMetadata) {
+    this.store$.dispatch(
+      actions.setActiveTokenId({ tokenId: tokenMetadata.token_id })
+    )
+  }
+
+  public onSelect(event: any): void {
     this.router.navigate(['/', `${event.heading.toLowerCase()}`])
     this.store$.dispatch(actions.selectTab({ tab: event.id }))
   }
 
-  setTransferMaxValue(): void {
-    this.setMaxValue(this.balance$, this.amountTransferControl)
-  }
-
-  setMaxValue(
-    balance: Observable<BigNumber | undefined>,
-    formControl: FormControl
-  ): void {
-    combineLatest([balance, this.store$.select(getActiveContract)])
-      .pipe(
-        take(1),
-        filter(
-          ([balance, contract]) =>
-            balance !== undefined && contract !== undefined
-        ),
-        map(([balance, contract]) => ({
-          balance: balance!,
-          contract: contract!,
-        }))
-      )
-      .subscribe(({ balance, contract }) => {
-        formControl.setValue(
-          // TODO: get decimals from token metadata
-          convertBigNumberToAmount(balance, 2)
-        )
-      })
+  public selectOperationTemplate(template: OperationTemplate) {
+    this.store$.dispatch(actions.setSelectedOperationTemplate({ template }))
   }
 }
