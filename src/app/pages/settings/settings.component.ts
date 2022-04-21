@@ -20,6 +20,7 @@ import {
   isSigner,
   getOperationTemplates,
   getSelectedOperationTemplate,
+  getAdmins,
 } from 'src/app/app.selectors'
 import * as fromRoot from '../../reducers/index'
 import * as actions from '../../app.actions'
@@ -84,6 +85,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public isAdmin$: Observable<boolean>
   public gatekeepers$: Observable<User[]>
   public signers$: Observable<User[]>
+  public admins$: Observable<User[]>
   public activeContract$: Observable<Contract>
   public sessionUser$: Observable<SessionUser>
   public signersCount$: Observable<number>
@@ -147,6 +149,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .pipe(isNotNullOrUndefined())
     this.gatekeepers$ = this.store$.select(getGatekeepers)
     this.signers$ = this.store$.select(getSigners)
+    this.admins$ = this.store$.select(getAdmins)
     this.signersToRemove$ = this.store$.select(getSignersToRemove)
     this.signersToAdd$ = this.store$.select(getSignersToAdd)
     this.busyChangeKeysOperationRequests$ = this.store$.select(
