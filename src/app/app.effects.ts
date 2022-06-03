@@ -25,6 +25,8 @@ import {
   getInjectedChangeKeysOperationRequestCurrentPage,
   getOpenOperationRequestCurrentPage,
   getOpenChangeKeysOperationRequestCurrentPage,
+  getAllTokenMetadata,
+  getActiveTokenMetadata,
 } from './app.selectors'
 import { ApiService } from './services/api/api.service'
 import { ErrorKind, isAPIError } from './services/api/interfaces/error'
@@ -37,6 +39,7 @@ import { CacheService } from './services/cache/cache.service'
 import { Contract } from './services/api/interfaces/contract'
 import { Router } from '@angular/router'
 import { Order } from './services/api/interfaces/common'
+import { ContractService } from './services/contract/contract.service'
 
 @Injectable()
 export class AppEffects {
@@ -44,6 +47,7 @@ export class AppEffects {
     private readonly actions$: Actions,
     private readonly beaconService: BeaconService,
     private readonly apiService: ApiService,
+    private readonly contractService: ContractService,
     private readonly store$: Store<fromRoot.State>,
     private readonly cacheService: CacheService,
     private readonly router: Router
@@ -300,18 +304,28 @@ export class AppEffects {
       ofType(actions.loadBalance),
       withLatestFrom(
         this.store$.select(getActiveAccount),
-        this.store$.select(getActiveContract)
+        this.store$.select(getActiveContract),
+        this.store$.select(getActiveTokenMetadata)
       ),
       filter(
-        ([account, contract]) => account !== undefined && contract !== undefined
+        ([, account, contract, tokenMetadata]) =>
+          account !== undefined &&
+          contract !== undefined &&
+          tokenMetadata !== undefined
       ),
-      map(([, account, contract]) => ({
+      map(([, account, contract, tokenMetadata]) => ({
         address: account!.address,
         contract: contract!,
+        tokenMetadata: tokenMetadata!,
       })),
-      switchMap(({ address, contract }) =>
-        // TODO: do not hardcode the token id
-        from(this.beaconService.getBalance(0, address, contract)).pipe(
+      switchMap(({ address, contract, tokenMetadata }) =>
+        from(
+          this.beaconService.getBalance(
+            tokenMetadata.token_id,
+            address,
+            contract
+          )
+        ).pipe(
           map((response) =>
             actions.loadBalanceSucceeded({ balance: response })
           ),
@@ -404,6 +418,49 @@ export class AppEffects {
           return of(
             actions.setActiveContract({ contract: response.results[0] })
           )
+        }
+      })
+    )
+  )
+
+  getAllTokenMetadata$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.getAllTokenMetadata),
+      withLatestFrom(
+        this.store$.select(getActiveContract),
+        this.store$.select(getAllTokenMetadata)
+      ),
+      filter(
+        ([, contract, metadata]) =>
+          contract !== undefined && metadata === undefined
+      ),
+      map(([, contract]) => ({ contract: contract! })),
+      mergeMap(({ contract }) =>
+        from(this.contractService.getAllTokens(contract.address)).pipe(
+          map((response) =>
+            actions.getAllTokenMetadataSucceeded({
+              contract,
+              allTokenMetadata: response,
+            })
+          ),
+          catchError((error) =>
+            of(actions.getAllTokenMetadataFailed({ error }))
+          )
+        )
+      )
+    )
+  )
+
+  getAllTokenMetadataSucceeded$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.getAllTokenMetadataSucceeded),
+      map(({ allTokenMetadata }) => {
+        if (allTokenMetadata.length > 0) {
+          return actions.setActiveTokenId({
+            tokenId: allTokenMetadata[0].token_id,
+          })
+        } else {
+          return actions.setActiveTokenIdFailed()
         }
       })
     )
@@ -783,26 +840,37 @@ export class AppEffects {
   transferOperation$ = createEffect(() =>
     this.actions$.pipe(
       ofType(actions.transferOperation),
-      withLatestFrom(this.store$.select(getActiveContract)),
-      filter(([, contract]) => contract !== undefined),
-      map(([{ receivingAddress, transferAmount }, contract]) => ({
-        receivingAddress,
-        transferAmount,
-        contract: contract!,
-      })),
-      switchMap(({ receivingAddress, transferAmount, contract }) =>
-        from(
-          // TODO: do not hardcode token id
-          this.beaconService.transferOperation(
-            0,
-            transferAmount,
-            receivingAddress,
-            contract
+      withLatestFrom(
+        this.store$.select(getActiveContract),
+        this.store$.select(getActiveTokenMetadata)
+      ),
+      filter(
+        ([, contract, tokenMetadata]) =>
+          contract !== undefined && tokenMetadata !== undefined
+      ),
+      map(
+        ([{ receivingAddress, transferAmount }, contract, tokenMetadata]) => ({
+          receivingAddress,
+          transferAmount,
+          contract: contract!,
+          tokenMetadata: tokenMetadata!,
+        })
+      ),
+      switchMap(
+        ({ receivingAddress, transferAmount, contract, tokenMetadata }) =>
+          from(
+            this.beaconService.transferOperation(
+              tokenMetadata.token_id,
+              transferAmount,
+              receivingAddress,
+              contract
+            )
+          ).pipe(
+            map(() => actions.transferOperationSucceeded()),
+            catchError((error) =>
+              of(actions.transferOperationFailed({ error }))
+            )
           )
-        ).pipe(
-          map(() => actions.transferOperationSucceeded()),
-          catchError((error) => of(actions.transferOperationFailed({ error })))
-        )
       )
     )
   )
@@ -1088,9 +1156,10 @@ export class AppEffects {
   setActiveContractSucceeded$ = createEffect(() =>
     this.actions$.pipe(
       ofType(actions.setActiveContractSucceeded),
-      map(({ contract }) =>
-        actions.loadContractCounter({ contractId: contract.id })
-      )
+      switchMap(({ contract }) => [
+        actions.loadContractCounter({ contractId: contract.id }),
+        actions.getAllTokenMetadata(),
+      ])
     )
   )
 
@@ -1147,6 +1216,83 @@ export class AppEffects {
   deleteOperationRequestFailed$ = createEffect(() =>
     this.actions$.pipe(
       ofType(actions.deleteOperationRequestFailed),
+      map((value) => actions.handleHttpErrorResponse(value))
+    )
+  )
+
+  loadOperationTemplates$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.loadOperationTemplates),
+      withLatestFrom(this.store$.select(getActiveContract)),
+      filter(([, contract]) => contract !== undefined),
+      map(([, contract]) => ({ contract: contract! })),
+      switchMap(({ contract }) =>
+        this.apiService.getOperationTemplates(contract.id).pipe(
+          map((response) =>
+            actions.loadOperationTemplatesSucceeded({ templates: response })
+          ),
+          catchError((error) =>
+            of(actions.loadOperationTemplatesFailed({ errorResponse: error }))
+          )
+        )
+      )
+    )
+  )
+
+  addOperationTemplate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.addOperationTemplate),
+      switchMap(({ template }) =>
+        this.apiService.addOperationTemplate(template).pipe(
+          map((response) =>
+            actions.addOperationTemplateSucceeded({ template: response })
+          ),
+          catchError((errorResponse) =>
+            of(actions.addOperationTemplateFailed({ errorResponse }))
+          )
+        )
+      )
+    )
+  )
+
+  addOperationTemplateSucceeded$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.addOperationTemplateSucceeded),
+      map(() => actions.loadOperationTemplates())
+    )
+  )
+
+  addOperationTemplateFailed$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.addOperationTemplateFailed),
+      map((value) => actions.handleHttpErrorResponse(value))
+    )
+  )
+
+  deleteOperationTemplate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.deleteOperationTemplate),
+      switchMap(({ template }) =>
+        this.apiService.deleteOperationTemplate(template.id).pipe(
+          map(() => actions.deleteOperationTemplateSucceeded({ template })),
+          catchError((errorResponse) =>
+            of(actions.deleteOperationTemplateFailed({ errorResponse }))
+          )
+        )
+      )
+    )
+  )
+
+  deleteOperationTemplateSucceeded$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.deleteOperationTemplateSucceeded),
+      map(() => actions.loadOperationTemplates())
+    )
+  )
+
+  deleteOperationTemplateFailed$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.deleteOperationTemplateFailed),
       map((value) => actions.handleHttpErrorResponse(value))
     )
   )

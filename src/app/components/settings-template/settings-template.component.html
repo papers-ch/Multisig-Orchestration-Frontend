@@ -1,0 +1,148 @@
+<div class="card">
+  <div class="card-body">
+    <h4 class="text-primary pb-4">
+      <strong>Templates</strong>
+    </h4>
+    <label>Template</label>
+    <div class="form-group">
+      <select
+        [formControl]="templateSelectionControl"
+        class="form-control custom-select"
+      >
+        <option selected [ngValue]="undefined">New template</option>
+        <option *ngFor="let template of templates" [ngValue]="template.id">
+          {{ template.name }}
+        </option>
+      </select>
+    </div>
+    <ng-container *ngIf="selectedTemplate !== undefined">
+      <div class="mb-3">
+        <label>Lambda template</label>
+        <div class="input-group input-group__two-items">
+          <textarea
+            type="text"
+            class="form-control"
+            [value]="selectedTemplate.template | json"
+            [disabled]="true"
+          ></textarea>
+        </div>
+      </div>
+      <ng-container *ngFor="let parameter of selectedTemplate.parameters">
+        <div class="row py-3 align-items-center">
+          <div class="col">
+            {{ parameter.name }}
+          </div>
+          <div class="col">
+            {{ '<#' + parameter.parameter_key + '#>' }}
+          </div>
+          <div class="col">
+            {{ parameter.parameter_value_type }}
+          </div>
+        </div>
+      </ng-container>
+      <button
+        (click)="removeTemplate()"
+        type="button"
+        class="btn btn-primary btn-block mt-3"
+      >
+        Delete Template
+      </button>
+    </ng-container>
+    <ng-container *ngIf="selectedTemplate === undefined">
+      <div class="mb-3">
+        <label class="d-block m-0">Name</label>
+      </div>
+      <div class="input-group mb-3">
+        <input
+          [formControl]="templateNameControl"
+          type="text"
+          class="form-control"
+          placeholder="Template name"
+          aria-label="name"
+        />
+      </div>
+      <div class="mb-3">
+        <label>Lambda template</label>
+        <div class="input-group input-group__two-items">
+          <textarea
+            [formControl]="lambdaTemplateControl"
+            type="text"
+            class="form-control"
+            [ngClass]="{
+              'is-invalid':
+                lambdaTemplateControl.errors &&
+                (lambdaTemplateControl.touched || lambdaTemplateControl.dirty)
+            }"
+          ></textarea>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="d-block m-0">Parameters</label>
+      </div>
+      <ng-container
+        *ngFor="let form of templateParameterControls.controls; let idx = index"
+      >
+        <div class="row mb-1">
+          <div class="col pr-0">
+            <input
+              [formControl]="form.controls.nameControl"
+              type="text"
+              class="form-control"
+              placeholder="Name"
+              aria-label="name"
+            />
+          </div>
+          <div class="col pr-0">
+            <input
+              [formControl]="form.controls.keyControl"
+              type="text"
+              class="form-control"
+              placeholder="Key"
+              aria-label="name"
+            />
+          </div>
+          <div class="col pr-0">
+            <select
+              [formControl]="form.controls.typeControl"
+              class="form-control custom-select"
+            >
+              <option value="" disabled selected>Type</option>
+              <option selected value="number">Number</option>
+              <option selected value="string">String</option>
+              <option selected value="bytes">Bytes</option>
+              <option selected value="address">Address</option>
+            </select>
+          </div>
+          <div class="col-1">
+            <button
+              type="button"
+              class="btn btn-light"
+              (click)="removeParameter(idx)"
+            >
+              <img src="/assets/img/trash-can.svg" width="18px" />
+            </button>
+          </div>
+        </div>
+      </ng-container>
+      <div class="row pt-2">
+        <div class="col-md-3 col-12">
+          <button
+            type="button"
+            class="btn btn-primary btn-block"
+            (click)="addParameter()"
+          >
+            Add Parameter
+          </button>
+        </div>
+      </div>
+      <button
+        (click)="addTemplate()"
+        type="button"
+        class="btn btn-primary btn-block mt-5"
+        [disabled]="formGroup.invalid"
+      >
+        Add Template
+      </button>
+    </ng-container>
+  </div>
+</div>

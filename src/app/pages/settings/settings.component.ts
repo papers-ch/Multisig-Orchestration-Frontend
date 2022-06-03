@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core'
 import { Store } from '@ngrx/store'
 import {
-  getActiveAccount,
   getActiveContract,
   getApprovedChangeKeysOperationRequests,
   getBusyChangeKeysOperationRequests,
@@ -19,6 +18,9 @@ import {
   isAdmin,
   isGatekeeper,
   isSigner,
+  getOperationTemplates,
+  getSelectedOperationTemplate,
+  getAdmins,
 } from 'src/app/app.selectors'
 import * as fromRoot from '../../reducers/index'
 import * as actions from '../../app.actions'
@@ -51,9 +53,12 @@ import {
   OperationRequestKind,
 } from 'src/app/services/api/interfaces/operationRequest'
 import { PagedResponse } from 'src/app/services/api/interfaces/common'
-import { BeaconService } from 'src/app/services/beacon/beacon.service'
 import { CopyService } from 'src/app/services/copy/copy-service.service'
 import { TezosNode } from 'src/app/services/api/interfaces/nodes'
+import {
+  NewOperationTemplate,
+  OperationTemplate,
+} from 'src/app/services/api/interfaces/operationTemplate'
 
 @Component({
   selector: 'app-settings',
@@ -80,6 +85,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public isAdmin$: Observable<boolean>
   public gatekeepers$: Observable<User[]>
   public signers$: Observable<User[]>
+  public admins$: Observable<User[]>
   public activeContract$: Observable<Contract>
   public sessionUser$: Observable<SessionUser>
   public signersCount$: Observable<number>
@@ -98,6 +104,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   >
 
   public tezosNodes$: Observable<TezosNode[]>
+  public operationTemplates$: Observable<OperationTemplate[]>
+  public selectedOperationTemplate$: Observable<OperationTemplate | undefined>
 
   public busyChangeKeysOperationRequests$: Observable<boolean>
 
@@ -129,6 +137,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.activeContract$ = this.store$
       .select(getActiveContract)
       .pipe(isNotNullOrUndefined())
+    const templatesSub = this.activeContract$.subscribe(() =>
+      this.store$.dispatch(actions.loadOperationTemplates())
+    )
+    this.subscriptions.push(templatesSub)
     this.isGatekeeper$ = this.store$.select(isGatekeeper)
     this.isSigner$ = this.store$.select(isSigner)
     this.isAdmin$ = this.store$.select(isAdmin)
@@ -137,6 +149,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .pipe(isNotNullOrUndefined())
     this.gatekeepers$ = this.store$.select(getGatekeepers)
     this.signers$ = this.store$.select(getSigners)
+    this.admins$ = this.store$.select(getAdmins)
     this.signersToRemove$ = this.store$.select(getSignersToRemove)
     this.signersToAdd$ = this.store$.select(getSignersToAdd)
     this.busyChangeKeysOperationRequests$ = this.store$.select(
@@ -178,6 +191,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.tezosNodesForm.valueChanges,
     ]).pipe(
       map(([selectedNode]) => selectedNode.id !== this.tezosNodesForm.value)
+    )
+
+    this.operationTemplates$ = this.store$.select(getOperationTemplates)
+    this.selectedOperationTemplate$ = this.store$.select(
+      getSelectedOperationTemplate
     )
 
     this.openChangeKeysOperationRequests$ = this.store$.select(
@@ -399,6 +417,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return this.signersToRemove$.pipe(
       map((toRemove) => !toRemove.includes(singer))
     )
+  }
+
+  public selectedTemplate(template: OperationTemplate) {
+    this.store$.dispatch(actions.setSelectedOperationTemplate({ template }))
+  }
+
+  public addOperationTemplate(template: NewOperationTemplate) {
+    this.store$.dispatch(actions.addOperationTemplate({ template }))
+  }
+
+  public removeOperationTemplate(template: OperationTemplate) {
+    this.store$.dispatch(actions.deleteOperationTemplate({ template }))
   }
 
   public copyToClipboard(val: string) {

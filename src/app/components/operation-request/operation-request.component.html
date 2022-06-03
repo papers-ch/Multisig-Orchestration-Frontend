@@ -1,30 +1,28 @@
 <ng-container *ngIf="operationRequest">
   <div class="m-0">
-    <h5 *ngIf="operationRequest.lambda !== null" class="m-0">
-      <h5 class="m-0">
-        <strong>Lambda</strong>
-      </h5>
+    <ng-container *ngIf="operationRequest.lambda !== null" class="m-0">
+      <p class="m-0"><strong>Lambda</strong></p>
       <textarea
         type="text"
         [value]="operationRequest.lambda | json"
         [disabled]="true"
       ></textarea>
-    </h5>
+    </ng-container>
   </div>
   <div class="row py-3 align-items-center">
     <div class="col col-md-6">
       <ng-container *ngIf="operationRequest.threshold !== null">
-        <h5 class="m-0">
+        <p class="m-0">
           <strong>Threshold</strong>
-        </h5>
+        </p>
         <h5>
-          <span class="text-muted">{{ operationRequest.threshold }}</span>
+          <span>{{ operationRequest.threshold }}</span>
         </h5>
       </ng-container>
 
       <ng-container *ngIf="operationRequest.proposed_signers !== null">
-        <h5>
-          <strong>Signers</strong>
+        <p class="mb-0"><strong>Signers</strong></p>
+        <div class="pb-3">
           <p
             *ngFor="let proposed of operationRequest.proposed_signers"
             class="text-muted m-0"
@@ -35,7 +33,7 @@
                 : (proposed.address | shorten)
             }}
           </p>
-        </h5>
+        </div>
       </ng-container>
       <strong>Requester</strong>
       <p *ngIf="operationRequest.user.display_name.length > 0" class="m-0">

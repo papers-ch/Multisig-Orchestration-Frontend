@@ -1,0 +1,10 @@
+textarea {
+  font-family: Consolas, Monaco, Lucida Console, Liberation Mono,
+    DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+  font-size: 10px;
+  min-height: 100px;
+  width: 100%;
+}
+textarea.form-control:disabled {
+  height: 300px;
+}

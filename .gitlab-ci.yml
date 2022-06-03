@@ -42,7 +42,7 @@ test:
   script:
     - docker build --build-arg RUN_ENV=$CI_ENVIRONMENT_NAME -t $GOOGLE_TAG-$CI_ENVIRONMENT_NAME .
 
-build_serve_dev:
+build-serve-dev:
   stage: build_serve
   script:
     - !reference [.base_build_serve, script]
@@ -51,7 +51,7 @@ build_serve_dev:
   environment:
     name: development
 
-build_serve_prod:
+build-serve-prod:
   stage: build_serve
   script:
     - !reference [.base_build_serve, script]
@@ -60,9 +60,9 @@ build_serve_prod:
   environment:
     name: production
 
-publish_dev:
+publish-dev:
   stage: publish
-  needs: ['build_serve_dev']
+  needs: ['build-serve-dev']
   extends: .publish-dev
   script:
     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_DEV
@@ -73,18 +73,18 @@ publish_dev:
     name: development
     action: prepare
 
-# publish_prod:
-#   stage: publish
-#   needs: ['build_serve_prod']
-#   extends: .publish-prod
-#   script:
-#     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG
-#     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST
-#     - docker push $GOOGLE_TAG
-#     - docker push $GOOGLE_TAG_LATEST
-#   environment:
-#     name: production
-#     action: prepare
+publish-prod:
+  stage: publish
+  needs: ['build-serve-prod']
+  extends: .publish-prod
+  script:
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST
+    - docker push $GOOGLE_TAG
+    - docker push $GOOGLE_TAG_LATEST
+  environment:
+    name: production
+    action: prepare
 
 .base_deployment:
   script:
@@ -108,14 +108,15 @@ k8s-deploy-development:
     - !reference [.base_deployment, script]
   environment:
     name: development
-# k8s-deploy-production:
-#   stage: deploy
-#   when: manual
-#   needs: ["publish-prod"]
-#   extends: .run_prod
-#   variables:
-#     IMAGE_TAG: $GOOGLE_TAG_PROD
-#   script:
-#     - !reference [.base_deployment, script]
-#   environment:
-#     name: production
+
+k8s-deploy-production:
+  stage: deploy
+  when: manual
+  needs: ['publish-prod']
+  extends: .run_prod
+  variables:
+    IMAGE_TAG: $GOOGLE_TAG_PROD
+  script:
+    - !reference [.base_deployment, script]
+  environment:
+    name: production

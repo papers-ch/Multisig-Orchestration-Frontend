@@ -1,0 +1,11 @@
+<form [formGroup]="formGroup">
+  <div class="form-group">
+    <select [formControl]="tokenControl" class="form-control custom-select">
+      <option [ngValue]="null" disabled selected>Select Token</option>
+      <option *ngFor="let token of allTokenMetadata" [ngValue]="token.token_id">
+        {{ token.token_id }}
+        {{ token.name.length > 0 ? ' - ' + token.name : '' }}
+      </option>
+    </select>
+  </div>
+</form>

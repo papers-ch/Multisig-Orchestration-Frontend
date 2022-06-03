@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  wrappedBackendUrl: 'https://tz-wrapped.dev.gke.papers.tech',
+  backendUrl: 'https://multisig-orchestration-backend.dev.gke.papers.tech',
 }
 
 /*

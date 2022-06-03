@@ -18,6 +18,27 @@ export const getContracts = createSelector(
   (state) => state.contracts
 )
 
+export const getAllTokenMetadata = createSelector(
+  selectApp,
+  getActiveContract,
+  (state, contract) =>
+    contract ? state.allTokenMetadata.get(contract.id) : undefined
+)
+
+export const getActiveTokenId = createSelector(
+  selectApp,
+  (state) => state.activeTokenId
+)
+
+export const getActiveTokenMetadata = createSelector(
+  getAllTokenMetadata,
+  getActiveTokenId,
+  (allTokenMetadata, tokenId) =>
+    allTokenMetadata !== undefined && tokenId !== undefined
+      ? allTokenMetadata.find((metadata) => metadata.token_id === tokenId)
+      : undefined
+)
+
 export const getSessionUser = createSelector(
   selectApp,
   (state) => state.sessionUser
@@ -183,4 +204,14 @@ export const getBusyOperationRequests = createSelector(
 export const getBusyChangeKeysOperationRequests = createSelector(
   selectApp,
   (state) => state.busy.changeKeysOperationRequests
+)
+
+export const getOperationTemplates = createSelector(
+  selectApp,
+  (state) => state.operationTemplates
+)
+
+export const getSelectedOperationTemplate = createSelector(
+  selectApp,
+  (state) => state.selectedOperationTemplate
 )

@@ -48,6 +48,10 @@ $btn-border-radius: $border-radius;
 $card-spacer-x: 1.5rem;
 $dropdown-link-active-bg: rgba(map_get($theme-colors, 'primary'), 0.54);
 
+.container {
+  max-width: 1280px !important;
+}
+
 pre {
   white-space: pre-wrap; /* css-3 */
   white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
@@ -121,6 +125,18 @@ tabset {
 app-multi-signature-item:last-of-type .multi-signature__border,
 operation-request:last-of-type hr {
   display: none !important;
+}
+
+app-dashboard {
+  .multi-signature__border {
+    left: 31px;
+  }
+}
+
+app-settings {
+  .multi-signature__border {
+    left: 59px;
+  }
 }
 
 @import '../node_modules/bootstrap/scss/bootstrap';
