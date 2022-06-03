@@ -29,6 +29,36 @@
           </ng-container>
         </div>
       </div>
+      <div class="card mt-5">
+        <div class="card" *ngIf="activeContract$ | async as activeContract">
+          <div class="card-body">
+            <h4 class="text-primary pb-4">
+              <strong>Admins</strong>
+            </h4>
+            <ng-container *ngIf="admins$ | async as admins">
+              <div *ngFor="let admin of admins">
+                <div class="row align-items-center pb-4">
+                  <div class="col">
+                    <h6 class="m-0">
+                      <strong>{{ admin.display_name }}</strong>
+                    </h6>
+                    <p class="m-0">{{ admin.address }}</p>
+                    <p class="text-muted m-0">
+                      {{ admin.public_key | shorten }}
+                      <a
+                        class="btn btn-sm btn-icon btn-light rounded-circle ml-2"
+                        (click)="copyToClipboard(admin.public_key)"
+                      >
+                        <img src="/assets/img/copy.svg" />
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
     </ng-container>
     <ng-container *ngIf="isAdmin$ | async">
       <div class="card mt-5">
