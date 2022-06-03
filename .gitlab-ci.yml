@@ -56,7 +56,7 @@ build-serve-prod:
   script:
     - !reference [.base_build_serve, script]
   only:
-    - master
+    - main
   environment:
     name: production
 
@@ -69,6 +69,8 @@ publish-dev:
     - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST_DEV
     - docker push $GOOGLE_TAG_DEV
     - docker push $GOOGLE_TAG_LATEST_DEV
+  only:
+    - develop
   environment:
     name: development
     action: prepare
@@ -106,6 +108,8 @@ k8s-deploy-development:
     IMAGE_TAG: $GOOGLE_TAG_DEV
   script:
     - !reference [.base_deployment, script]
+  only:
+    - develop
   environment:
     name: development
 
