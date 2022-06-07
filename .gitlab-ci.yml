@@ -119,7 +119,7 @@ k8s-deploy-production:
   needs: ['publish-prod']
   extends: .run_prod
   variables:
-    IMAGE_TAG: $GOOGLE_TAG_PROD
+    IMAGE_TAG: $GOOGLE_TAG
   script:
     - !reference [.base_deployment, script]
   environment:
