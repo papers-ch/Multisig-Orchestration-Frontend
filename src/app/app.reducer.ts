@@ -139,6 +139,7 @@ export const reducer = createReducer(
     openChangeKeysOperationRequests: undefined,
     approvedChangeKeysOperationRequests: undefined,
     injectedChangeKeysOperationRequests: undefined,
+    operationTemplates: [],
   })),
   on(actions.updateCanSignIn, (state, { canSignIn }) => ({
     ...state,
@@ -419,6 +420,7 @@ export const reducer = createReducer(
     injectedChangeKeysOperationRequests: undefined,
     signersToRemove: [],
     signersToAdd: [],
+    operationTemplates: [],
     busy: {
       ...state.busy,
     },

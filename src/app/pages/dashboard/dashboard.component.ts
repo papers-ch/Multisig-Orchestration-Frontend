@@ -169,6 +169,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         .subscribe(([contract]) => {
           this.store$.dispatch(actions.loadUsers({ contractId: contract.id }))
           this.store$.dispatch(actions.loadOperationRequests())
+          this.store$.dispatch(actions.loadOperationTemplates())
         })
     )
     this.subscriptions.push(
