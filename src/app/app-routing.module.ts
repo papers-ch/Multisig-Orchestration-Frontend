@@ -6,7 +6,11 @@ import { Tab } from './pages/dashboard/tab'
 import { SettingsComponent } from './pages/settings/settings.component'
 
 const routes: Routes = [
-  { path: '', redirectTo: Tab.TRANSFER.replace('tab-', ''), pathMatch: 'full' },
+  {
+    path: '',
+    redirectTo: Tab.OPERATION.replace('tab-', ''),
+    pathMatch: 'full',
+  },
   { path: 'settings', component: SettingsComponent },
   { path: ':tab', component: DashboardComponent },
 ]

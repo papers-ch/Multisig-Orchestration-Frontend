@@ -5,6 +5,8 @@ include:
 variables:
   NAMESPACE: multisig-orchestration
   TEST_TAG: multisig_orchestration_frontend_test_$CI_COMMIT_SHA
+  GOOGLE_TAG_TEST: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/test-$CI_PROJECT_NAME:$CI_COMMIT_SHA
+  GOOGLE_TAG_LATEST_TEST: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/test-$CI_PROJECT_NAME:latest
 
 stages:
   - build
@@ -75,6 +77,21 @@ publish-dev:
     name: development
     action: prepare
 
+publish-test:
+  stage: publish
+  needs: ['build-serve-dev']
+  extends: .publish-prod
+  script:
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_TEST
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST_TEST
+    - docker push $GOOGLE_TAG_TEST
+    - docker push $GOOGLE_TAG_LATEST_TEST
+  only:
+    - develop
+  environment:
+    name: development
+    action: prepare
+
 publish-prod:
   stage: publish
   needs: ['build-serve-prod']
@@ -112,6 +129,20 @@ k8s-deploy-development:
     - develop
   environment:
     name: development
+
+k8s-deploy-test:
+  stage: deploy
+  when: manual
+  needs: ['publish-test']
+  extends: .run_prod
+  variables:
+    IMAGE_TAG: $GOOGLE_TAG_TEST
+  script:
+    - !reference [.base_deployment, script]
+  only:
+    - develop
+  environment:
+    name: test
 
 k8s-deploy-production:
   stage: deploy
