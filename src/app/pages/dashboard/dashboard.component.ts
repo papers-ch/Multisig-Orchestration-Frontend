@@ -70,13 +70,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public gatekeepers$: Observable<User[]>
   public isGatekeeper$: Observable<boolean>
   public isSigner$: Observable<boolean>
-  public balance$: Observable<
-    { value: BigNumber; decimals: number; symbol: string } | undefined
-  >
+  // public balance$: Observable<
+  //   { value: BigNumber; decimals: number; symbol: string } | undefined
+  // >
   public activeContract$: Observable<Contract>
-  public activeTokenMetadata$: Observable<TokenMetadata>
-  public allTokenMetadata$: Observable<TokenMetadata[] | undefined>
-  public activeTokenMetadataIndex$: Observable<number | undefined>
+  // public activeTokenMetadata$: Observable<TokenMetadata>
+  // public allTokenMetadata$: Observable<TokenMetadata[] | undefined>
+  // public activeTokenMetadataIndex$: Observable<number | undefined>
   public busyOpeartionRequests$: Observable<boolean>
 
   private subscriptions: Subscription[] = []
@@ -90,24 +90,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.activeContract$ = this.store$
       .select(getActiveContract)
       .pipe(isNotNullOrUndefined())
-    this.activeTokenMetadata$ = this.store$
-      .select(getActiveTokenMetadata)
-      .pipe(isNotNullOrUndefined())
-    this.allTokenMetadata$ = this.store$.select(getAllTokenMetadata)
-    this.activeTokenMetadataIndex$ = combineLatest([
-      this.allTokenMetadata$,
-      this.store$.select(getActiveTokenId),
-    ]).pipe(
-      map(([allTokenMetadata, activeTokenId]) => {
-        let index = -1
-        if (allTokenMetadata !== undefined && activeTokenId !== undefined) {
-          index = allTokenMetadata.findIndex(
-            (token) => token.token_id === activeTokenId
-          )
-        }
-        return index >= 0 ? index : undefined
-      })
-    )
+    // this.activeTokenMetadata$ = this.store$
+    //   .select(getActiveTokenMetadata)
+    //   .pipe(isNotNullOrUndefined())
+    // this.allTokenMetadata$ = this.store$.select(getAllTokenMetadata)
+    // this.activeTokenMetadataIndex$ = combineLatest([
+    //   this.allTokenMetadata$,
+    //   this.store$.select(getActiveTokenId),
+    // ]).pipe(
+    //   map(([allTokenMetadata, activeTokenId]) => {
+    //     let index = -1
+    //     if (allTokenMetadata !== undefined && activeTokenId !== undefined) {
+    //       index = allTokenMetadata.findIndex(
+    //         (token) => token.token_id === activeTokenId
+    //       )
+    //     }
+    //     return index >= 0 ? index : undefined
+    //   })
+    // )
     const signInSub = signIn(this.store$)
     this.subscriptions.push(signInSub)
     this.selectedTab$ = this.store$.select(getSelectedTab)
@@ -138,20 +138,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.address$ = this.store$.select(getAddress)
     this.isGatekeeper$ = this.store$.select(isGatekeeper)
     this.isSigner$ = this.store$.select(isSigner)
-    this.balance$ = combineLatest([
-      this.store$.select(getBalance),
-      this.activeTokenMetadata$,
-    ]).pipe(
-      map(([balance, tokenMetadata]) =>
-        balance !== undefined
-          ? {
-              value: balance,
-              decimals: tokenMetadata.decimals,
-              symbol: tokenMetadata.symbol ?? '',
-            }
-          : undefined
-      )
-    )
+    // this.balance$ = combineLatest([
+    //   this.store$.select(getBalance),
+    //   this.activeTokenMetadata$,
+    // ]).pipe(
+    //   map(([balance, tokenMetadata]) =>
+    //     balance !== undefined
+    //       ? {
+    //           value: balance,
+    //           decimals: tokenMetadata.decimals,
+    //           symbol: tokenMetadata.symbol ?? '',
+    //         }
+    //       : undefined
+    //   )
+    // )
     this.busyOpeartionRequests$ = this.store$.select(getBusyOperationRequests)
     this.gatekeepers$ = this.store$.select(getGatekeepers)
     this.subscriptions.push(
@@ -194,7 +194,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (params.tab === 'operation') {
         this.store$.dispatch(actions.selectTab({ tab: Tab.OPERATION }))
       } else {
-        this.store$.dispatch(actions.selectTab({ tab: Tab.TRANSFER }))
+        this.store$.dispatch(actions.selectTab({ tab: Tab.OPERATION }))
       }
     })
   }
