@@ -4,7 +4,7 @@
       <div class="card-body">
         <div>
           <tabset *ngIf="selectedTab$ | async as selectedTab">
-            <tab
+            <!-- <tab
               heading="Transfer"
               id="tab-transfer"
               [active]="selectedTab === 'tab-transfer'"
@@ -18,7 +18,7 @@
                 (onTransfer)="transfer($event)"
                 (onSelectedTokenMetadata)="selectedTokenMetadata($event)"
               ></app-transfer-form>
-            </tab>
+            </tab> -->
             <tab
               heading="Operation"
               id="tab-operation"
