@@ -130,7 +130,7 @@ k8s-deploy-development:
   environment:
     name: development
 
-k8s-deploy-production:
+k8s-deploy-test:
   stage: deploy
   when: manual
   needs: ['publish-test']
