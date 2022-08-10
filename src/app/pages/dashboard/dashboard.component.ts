@@ -90,24 +90,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.activeContract$ = this.store$
       .select(getActiveContract)
       .pipe(isNotNullOrUndefined())
-    // this.activeTokenMetadata$ = this.store$
-    //   .select(getActiveTokenMetadata)
-    //   .pipe(isNotNullOrUndefined())
-    // this.allTokenMetadata$ = this.store$.select(getAllTokenMetadata)
-    // this.activeTokenMetadataIndex$ = combineLatest([
-    //   this.allTokenMetadata$,
-    //   this.store$.select(getActiveTokenId),
-    // ]).pipe(
-    //   map(([allTokenMetadata, activeTokenId]) => {
-    //     let index = -1
-    //     if (allTokenMetadata !== undefined && activeTokenId !== undefined) {
-    //       index = allTokenMetadata.findIndex(
-    //         (token) => token.token_id === activeTokenId
-    //       )
-    //     }
-    //     return index >= 0 ? index : undefined
-    //   })
-    // )
     const signInSub = signIn(this.store$)
     this.subscriptions.push(signInSub)
     this.selectedTab$ = this.store$.select(getSelectedTab)
@@ -138,20 +120,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.address$ = this.store$.select(getAddress)
     this.isGatekeeper$ = this.store$.select(isGatekeeper)
     this.isSigner$ = this.store$.select(isSigner)
-    // this.balance$ = combineLatest([
-    //   this.store$.select(getBalance),
-    //   this.activeTokenMetadata$,
-    // ]).pipe(
-    //   map(([balance, tokenMetadata]) =>
-    //     balance !== undefined
-    //       ? {
-    //           value: balance,
-    //           decimals: tokenMetadata.decimals,
-    //           symbol: tokenMetadata.symbol ?? '',
-    //         }
-    //       : undefined
-    //   )
-    // )
     this.busyOpeartionRequests$ = this.store$.select(getBusyOperationRequests)
     this.gatekeepers$ = this.store$.select(getGatekeepers)
     this.subscriptions.push(
@@ -206,20 +174,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   public operation(options: { lambda: any; ledgerHash: string | null }) {
-    this.activeContract$.pipe(take(1)).subscribe((contract) => {
-      this.store$.dispatch(
-        actions.submitOperationRequest({
-          newOperationRequest: {
-            contract_id: contract.id,
-            kind: OperationRequestKind.OPERATION,
-            lambda: options.lambda,
-            threshold: null,
-            proposed_signers: null,
-            ledger_hash: options.ledgerHash,
-          },
-        })
-      )
-    })
+    combineLatest([this.activeContract$, this.selectedOperationTemplate$])
+      .pipe(take(1))
+      .subscribe(([contract, template]) => {
+        this.store$.dispatch(
+          actions.submitOperationRequest({
+            newOperationRequest: {
+              contract_id: contract.id,
+              kind: OperationRequestKind.OPERATION,
+              lambda: options.lambda,
+              threshold: null,
+              proposed_signers: null,
+              ledger_hash: options.ledgerHash,
+              description: template?.name ?? null,
+            },
+          })
+        )
+      })
   }
 
   public transfer(options: { amount: BigNumber; receivingAddress: string }) {

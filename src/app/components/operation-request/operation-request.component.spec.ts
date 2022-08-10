@@ -91,6 +91,7 @@ describe('OperationRequestComponent', () => {
       state: OperationRequestState.OPEN,
       operation_approvals: [],
       operation_hash: '',
+      description: '',
     }
     fixture.detectChanges()
   })

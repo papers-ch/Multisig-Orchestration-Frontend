@@ -5,14 +5,14 @@
       [formControl]="templateSelectionControl"
       class="form-control custom-select"
     >
-      <option selected [ngValue]="null">None</option>
+      <!-- <option selected [ngValue]="null">None</option> -->
       <option *ngFor="let template of templates" [ngValue]="template.id">
         {{ template.name }}
       </option>
     </select>
   </div>
   <div class="my-5">
-    <ng-container *ngIf="selectedTemplate === undefined">
+    <!-- <ng-container *ngIf="selectedTemplate === undefined">
       <div class="mb-3">
         <label>Enter Michelson Lambda reprepsenting the operation</label>
         <div class="input-group input-group__two-items">
@@ -33,7 +33,7 @@
           </div>
         </div>
       </div>
-    </ng-container>
+    </ng-container> -->
     <ng-container *ngIf="selectedTemplate !== undefined">
       <div class="mb-3">
         <label>Parameters</label>

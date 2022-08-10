@@ -75,6 +75,7 @@ describe('DeleteModalItemComponent', () => {
           signature: '',
         },
       ],
+      description: '',
     }
     fixture.detectChanges()
   })

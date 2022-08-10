@@ -194,6 +194,7 @@ export class OperationRequestComponent implements OnInit {
             initialState: {
               signableMessage,
               contract,
+              operationRequest: this.operationRequest,
             },
           })
         }
