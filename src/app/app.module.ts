@@ -32,7 +32,6 @@ import { CacheService } from './services/cache/cache.service'
 import { DeleteModalItemComponent } from './components/delete-modal-item/delete-modal-item.component'
 import { OperationRequestGroupComponent } from './components/operation-request-group/operation-request-group.component'
 import { UploadSignatureComponent } from './components/upload-signature/upload-signature.component'
-import { TransferFormComponent } from './components/transfer-form/transfer-form.component'
 import { TokenSelectorComponent } from './components/token-selector/token-selector.component'
 import { OperationFormComponent } from './components/operation-form/operation-form.component'
 import { SettingsTemplateComponent } from './components/settings-template/settings-template.component'
@@ -53,7 +52,6 @@ import { SettingsTemplateComponent } from './components/settings-template/settin
     DeleteModalItemComponent,
     OperationRequestGroupComponent,
     UploadSignatureComponent,
-    TransferFormComponent,
     TokenSelectorComponent,
     OperationFormComponent,
     SettingsTemplateComponent,
