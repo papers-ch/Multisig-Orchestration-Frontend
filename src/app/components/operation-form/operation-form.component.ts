@@ -20,10 +20,15 @@ import { Observable, Subscription } from 'rxjs'
 import { ApiService } from 'src/app/services/api/api.service'
 import {
   OperationTemplate,
+  OperationTemplateParameter,
   OperationTemplateParameterType,
   OperationTemplateParameterValue,
 } from 'src/app/services/api/interfaces/operationTemplate'
 import { createAddressValidators } from 'src/app/utils/address'
+import {
+  convertAmountToBigNumber,
+  createAmountValidators,
+} from 'src/app/utils/amount'
 
 @Component({
   selector: 'app-operation-form',
@@ -132,7 +137,10 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
       const parameters: OperationTemplateParameterValue[] =
         this.selectedTemplate.parameters.map((parameter, index) => ({
           parameter_key: parameter.parameter_key,
-          parameter_value: this.parametersControl.controls[index].value,
+          parameter_value: this.parameterValueFor(
+            parameter,
+            this.parametersControl.controls[index].value
+          ),
         }))
       lambda = await this.apiService
         .getLambda(this.selectedTemplate.id, parameters)
@@ -146,7 +154,7 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
     })
   }
 
-  public parameterTypeToImputType(
+  public parameterTypeToInputType(
     parameterType: OperationTemplateParameterType
   ): string {
     switch (parameterType) {
@@ -161,16 +169,37 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  public labelForParameter(parameter: OperationTemplateParameter): string {
+    if (
+      parameter.parameter_value_type !== OperationTemplateParameterType.NUMBER
+    ) {
+      return parameter.name
+    }
+    return `${parameter.name} (decimals: ${parameter.decimals ?? 0})`
+  }
+
+  private parameterValueFor(
+    parameter: OperationTemplateParameter,
+    rawValue: string
+  ): string {
+    if (
+      parameter.parameter_value_type !== OperationTemplateParameterType.NUMBER
+    ) {
+      return rawValue
+    }
+    return convertAmountToBigNumber(rawValue, parameter.decimals ?? 0).toFixed()
+  }
+
   private parameterTypeToFormValidators(
-    parameterType: OperationTemplateParameterType
+    parameter: OperationTemplateParameter
   ): ValidatorFn[] {
-    switch (parameterType) {
+    switch (parameter.parameter_value_type) {
       case OperationTemplateParameterType.ADDRESS:
         return createAddressValidators()
       case OperationTemplateParameterType.BYTES:
         return [Validators.required]
       case OperationTemplateParameterType.NUMBER:
-        return [Validators.required]
+        return createAmountValidators(parameter.decimals)
       case OperationTemplateParameterType.STRING:
         return [Validators.required]
     }
@@ -184,7 +213,7 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
         this.parametersControl.push(
           this.formBuilder.control(
             null,
-            this.parameterTypeToFormValidators(parameter.parameter_value_type)
+            this.parameterTypeToFormValidators(parameter)
           )
         )
       })

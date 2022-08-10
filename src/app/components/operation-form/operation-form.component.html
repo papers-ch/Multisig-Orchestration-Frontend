@@ -5,7 +5,7 @@
       [formControl]="templateSelectionControl"
       class="form-control custom-select"
     >
-      <!-- <option selected [ngValue]="null">None</option> -->
+      <option selected [ngValue]="null">None</option>
       <option *ngFor="let template of templates" [ngValue]="template.id">
         {{ template.name }}
       </option>
@@ -41,12 +41,12 @@
           *ngFor="let parameter of selectedTemplate.parameters; let idx = index"
         >
           <div class="mb-3">
-            <label>{{ parameter.name }}</label>
+            <label>{{ labelForParameter(parameter) }}</label>
             <div class="input-group input-group__two-items">
               <input
                 [formControl]="parametersControl.controls[idx]"
                 [type]="
-                  parameterTypeToImputType(parameter.parameter_value_type)
+                  parameterTypeToInputType(parameter.parameter_value_type)
                 "
                 class="form-control"
                 [ngClass]="{
