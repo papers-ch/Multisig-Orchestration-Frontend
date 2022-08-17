@@ -51,6 +51,11 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
   public onRequestOperation = new EventEmitter<{
     lambda: any
     ledgerHash: string | null
+    templateName: string | null
+    parametersInfo: {
+      parameter: OperationTemplateParameter
+      value: OperationTemplateParameterValue
+    }[]
   }>()
   @Output()
   public onSelectedTemplate = new EventEmitter<OperationTemplate>()
@@ -133,17 +138,30 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
 
   public async operation() {
     let lambda: any = []
+    let templateName: string | null = null
+    let parametersInfo: {
+      parameter: OperationTemplateParameter
+      value: OperationTemplateParameterValue
+    }[] = []
     if (this.selectedTemplate !== undefined) {
-      const parameters: OperationTemplateParameterValue[] =
-        this.selectedTemplate.parameters.map((parameter, index) => ({
-          parameter_key: parameter.parameter_key,
-          parameter_value: this.parameterValueFor(
-            parameter,
-            this.parametersControl.controls[index].value
-          ),
-        }))
+      templateName = this.selectedTemplate.name
+      parametersInfo = this.selectedTemplate.parameters.map(
+        (parameter, index) => ({
+          parameter,
+          value: {
+            parameter_key: parameter.parameter_key,
+            parameter_value: this.parameterValueFor(
+              parameter,
+              this.parametersControl.controls[index].value
+            ),
+          },
+        })
+      )
       lambda = await this.apiService
-        .getLambda(this.selectedTemplate.id, parameters)
+        .getLambda(
+          this.selectedTemplate.id,
+          parametersInfo.map((info) => info.value)
+        )
         .toPromise()
     } else {
       lambda = JSON.parse(this.lambdaControl.value)
@@ -151,6 +169,8 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
     this.onRequestOperation.emit({
       lambda,
       ledgerHash: this.ledgerHash,
+      templateName,
+      parametersInfo,
     })
   }
 

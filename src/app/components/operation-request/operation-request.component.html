@@ -2,7 +2,9 @@
   <div class="m-0">
     <ng-container *ngIf="operationRequest.description !== null" class="m-0">
       <p class="m-0">
-        <strong>{{ operationRequest.description }}</strong>
+        <strong style="white-space: pre">{{
+          operationRequest.description
+        }}</strong>
       </p>
     </ng-container>
   </div>
