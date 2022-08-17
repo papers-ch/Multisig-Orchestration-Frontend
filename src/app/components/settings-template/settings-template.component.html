@@ -38,6 +38,11 @@
           <div class="col">
             {{ parameter.parameter_value_type }}
           </div>
+          <div class="col">
+            <ng-container *ngIf="parameter.decimals">
+              Decimals: {{ parameter.decimals }}
+            </ng-container>
+          </div>
         </div>
       </ng-container>
       <button
@@ -112,6 +117,18 @@
               <option selected value="bytes">Bytes</option>
               <option selected value="address">Address</option>
             </select>
+          </div>
+          <div
+            class="col pr-0"
+            *ngIf="form.controls.typeControl.value === 'number'"
+          >
+            <input
+              [formControl]="form.controls.decimalsControl"
+              type="number"
+              class="form-control"
+              placeholder="0"
+              aria-label="name"
+            />
           </div>
           <div class="col-1">
             <button

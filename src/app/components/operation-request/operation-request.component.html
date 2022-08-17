@@ -1,12 +1,11 @@
 <ng-container *ngIf="operationRequest">
   <div class="m-0">
-    <ng-container *ngIf="operationRequest.lambda !== null" class="m-0">
-      <p class="m-0"><strong>Lambda</strong></p>
-      <textarea
-        type="text"
-        [value]="operationRequest.lambda | json"
-        [disabled]="true"
-      ></textarea>
+    <ng-container *ngIf="operationRequest.description !== null" class="m-0">
+      <p class="m-0">
+        <strong style="white-space: pre">{{
+          operationRequest.description
+        }}</strong>
+      </p>
     </ng-container>
   </div>
   <div class="row py-3 align-items-center">

@@ -26,6 +26,7 @@ export interface OperationRequest {
   state: OperationRequestState
   operation_approvals: OperationApproval[]
   operation_hash: string | null
+  description: string | null
 }
 
 export interface NewOperationRequest {
@@ -35,4 +36,5 @@ export interface NewOperationRequest {
   proposed_signers: string[] | null
   kind: OperationRequestKind
   ledger_hash: string | null
+  description: string | null
 }

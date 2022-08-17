@@ -388,6 +388,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
           threshold,
           proposed_signers: proposedSigners.sort(),
           ledger_hash: this.ledgerHash,
+          description: 'Update multisig contract',
         }
         this.store$.dispatch(
           actions.submitOperationRequest({ newOperationRequest })

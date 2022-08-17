@@ -20,10 +20,15 @@ import { Observable, Subscription } from 'rxjs'
 import { ApiService } from 'src/app/services/api/api.service'
 import {
   OperationTemplate,
+  OperationTemplateParameter,
   OperationTemplateParameterType,
   OperationTemplateParameterValue,
 } from 'src/app/services/api/interfaces/operationTemplate'
 import { createAddressValidators } from 'src/app/utils/address'
+import {
+  convertAmountToBigNumber,
+  createAmountValidators,
+} from 'src/app/utils/amount'
 
 @Component({
   selector: 'app-operation-form',
@@ -46,6 +51,11 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
   public onRequestOperation = new EventEmitter<{
     lambda: any
     ledgerHash: string | null
+    templateName: string | null
+    parametersInfo: {
+      parameter: OperationTemplateParameter
+      value: OperationTemplateParameterValue
+    }[]
   }>()
   @Output()
   public onSelectedTemplate = new EventEmitter<OperationTemplate>()
@@ -128,14 +138,30 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
 
   public async operation() {
     let lambda: any = []
+    let templateName: string | null = null
+    let parametersInfo: {
+      parameter: OperationTemplateParameter
+      value: OperationTemplateParameterValue
+    }[] = []
     if (this.selectedTemplate !== undefined) {
-      const parameters: OperationTemplateParameterValue[] =
-        this.selectedTemplate.parameters.map((parameter, index) => ({
-          parameter_key: parameter.parameter_key,
-          parameter_value: this.parametersControl.controls[index].value,
-        }))
+      templateName = this.selectedTemplate.name
+      parametersInfo = this.selectedTemplate.parameters.map(
+        (parameter, index) => ({
+          parameter,
+          value: {
+            parameter_key: parameter.parameter_key,
+            parameter_value: this.parameterValueFor(
+              parameter,
+              this.parametersControl.controls[index].value
+            ),
+          },
+        })
+      )
       lambda = await this.apiService
-        .getLambda(this.selectedTemplate.id, parameters)
+        .getLambda(
+          this.selectedTemplate.id,
+          parametersInfo.map((info) => info.value)
+        )
         .toPromise()
     } else {
       lambda = JSON.parse(this.lambdaControl.value)
@@ -143,10 +169,12 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
     this.onRequestOperation.emit({
       lambda,
       ledgerHash: this.ledgerHash,
+      templateName,
+      parametersInfo,
     })
   }
 
-  public parameterTypeToImputType(
+  public parameterTypeToInputType(
     parameterType: OperationTemplateParameterType
   ): string {
     switch (parameterType) {
@@ -161,16 +189,37 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  public labelForParameter(parameter: OperationTemplateParameter): string {
+    if (
+      parameter.parameter_value_type !== OperationTemplateParameterType.NUMBER
+    ) {
+      return parameter.name
+    }
+    return `${parameter.name} (decimals: ${parameter.decimals ?? 0})`
+  }
+
+  private parameterValueFor(
+    parameter: OperationTemplateParameter,
+    rawValue: string
+  ): string {
+    if (
+      parameter.parameter_value_type !== OperationTemplateParameterType.NUMBER
+    ) {
+      return rawValue
+    }
+    return convertAmountToBigNumber(rawValue, parameter.decimals ?? 0).toFixed()
+  }
+
   private parameterTypeToFormValidators(
-    parameterType: OperationTemplateParameterType
+    parameter: OperationTemplateParameter
   ): ValidatorFn[] {
-    switch (parameterType) {
+    switch (parameter.parameter_value_type) {
       case OperationTemplateParameterType.ADDRESS:
         return createAddressValidators()
       case OperationTemplateParameterType.BYTES:
         return [Validators.required]
       case OperationTemplateParameterType.NUMBER:
-        return [Validators.required]
+        return createAmountValidators(parameter.decimals)
       case OperationTemplateParameterType.STRING:
         return [Validators.required]
     }
@@ -184,7 +233,7 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
         this.parametersControl.push(
           this.formBuilder.control(
             null,
-            this.parameterTypeToFormValidators(parameter.parameter_value_type)
+            this.parameterTypeToFormValidators(parameter)
           )
         )
       })

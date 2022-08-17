@@ -16,6 +16,7 @@ export interface OperationTemplateParameter {
   name: string
   parameter_key: string
   parameter_value_type: OperationTemplateParameterType
+  decimals: number | null
 }
 
 export enum OperationTemplateParameterType {
@@ -36,6 +37,7 @@ export interface NewOperationTemplateParameter {
   name: string
   parameter_key: string
   parameter_value_type: OperationTemplateParameterType
+  decimals: number | null
 }
 
 export interface OperationTemplateParameterValue {

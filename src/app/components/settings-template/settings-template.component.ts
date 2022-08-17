@@ -98,6 +98,7 @@ export class SettingsTemplateComponent implements OnInit, OnChanges, OnDestroy {
         nameControl: this.formBuilder.control(null, [Validators.required]),
         keyControl: this.formBuilder.control(null, [Validators.required]),
         typeControl: this.formBuilder.control(null, [Validators.required]),
+        decimalsControl: this.formBuilder.control(null, []),
       })
     )
   }
@@ -110,11 +111,18 @@ export class SettingsTemplateComponent implements OnInit, OnChanges, OnDestroy {
     const parameters: NewOperationTemplateParameter[] = []
     for (const control of this.templateParameterControls.controls) {
       const form = control as FormGroup
+      const parameterValueType = form.controls.typeControl
+        .value as OperationTemplateParameterType
+      const decimals =
+        parameterValueType === OperationTemplateParameterType.NUMBER &&
+        form.controls.decimalsControl.value
+          ? Number(form.controls.decimalsControl.value)
+          : null
       parameters.push({
         name: form.controls.nameControl.value as string,
         parameter_key: form.controls.keyControl.value as string,
-        parameter_value_type: form.controls.typeControl
-          .value as OperationTemplateParameterType,
+        parameter_value_type: parameterValueType,
+        decimals,
       })
     }
     const newTemplate: NewOperationTemplate = {
