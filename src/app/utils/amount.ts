@@ -5,7 +5,7 @@ export const convertBigNumberToAmount = (
   balance: BigNumber,
   decimals: number
 ): string => {
-  return balance.shiftedBy(-1 * decimals).toString(10)
+  return balance.shiftedBy(-1 * decimals).toFixed(decimals)
 }
 
 export const convertAmountToBigNumber = (
@@ -30,6 +30,6 @@ export function amountValidator(max: BigNumber, decimals: number): ValidatorFn {
 export const createAmountValidators = (decimals: number | null | undefined) => [
   Validators.required,
   decimals
-    ? Validators.pattern(`^[+-]?(\\d*\\.)?(\\d){0,${decimals}}$`)
+    ? Validators.pattern(`^[+-]?\\d*(\\.(\\d){0,${decimals}}$)?`)
     : Validators.pattern(`^[+-]?\\d+$`),
 ]

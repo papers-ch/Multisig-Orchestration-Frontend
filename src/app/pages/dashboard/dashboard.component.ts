@@ -17,7 +17,6 @@ import {
   getActiveContract,
   getAddress,
   getApprovedOperationRequests,
-  getBalance,
   getInjectedOperationRequests,
   getSigners,
   getBusyOperationRequests,
@@ -28,8 +27,6 @@ import {
   isSigner,
   getGatekeepers,
   getActiveTokenMetadata,
-  getAllTokenMetadata,
-  getActiveTokenId,
   getSelectedOperationTemplate,
   getOperationTemplates,
 } from 'src/app/app.selectors'
@@ -39,7 +36,17 @@ import { PagedResponse } from 'src/app/services/api/interfaces/common'
 import { signIn } from 'src/app/common/auth'
 import { loadContractsIfNeeded } from 'src/app/common/contracts'
 import { TokenMetadata } from '@taquito/tzip12'
-import { OperationTemplate } from 'src/app/services/api/interfaces/operationTemplate'
+import {
+  OperationTemplate,
+  OperationTemplateParameter,
+  OperationTemplateParameterType,
+  OperationTemplateParameterValue,
+} from 'src/app/services/api/interfaces/operationTemplate'
+import { ShortenPipe } from 'src/app/pipes/shorten.pipe'
+import {
+  convertAmountToBigNumber,
+  convertBigNumberToAmount,
+} from 'src/app/utils/amount'
 
 @Component({
   selector: 'app-dashboard',
@@ -70,13 +77,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public gatekeepers$: Observable<User[]>
   public isGatekeeper$: Observable<boolean>
   public isSigner$: Observable<boolean>
-  // public balance$: Observable<
-  //   { value: BigNumber; decimals: number; symbol: string } | undefined
-  // >
   public activeContract$: Observable<Contract>
-  // public activeTokenMetadata$: Observable<TokenMetadata>
-  // public allTokenMetadata$: Observable<TokenMetadata[] | undefined>
-  // public activeTokenMetadataIndex$: Observable<number | undefined>
   public busyOpeartionRequests$: Observable<boolean>
 
   private subscriptions: Subscription[] = []
@@ -84,7 +85,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private readonly store$: Store<fromRoot.State>,
     private readonly route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private shorten: ShortenPipe
   ) {
     this.store$.dispatch(actions.loadTezosNodes())
     this.activeContract$ = this.store$
@@ -173,24 +175,73 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  public operation(options: { lambda: any; ledgerHash: string | null }) {
-    combineLatest([this.activeContract$, this.selectedOperationTemplate$])
-      .pipe(take(1))
-      .subscribe(([contract, template]) => {
-        this.store$.dispatch(
-          actions.submitOperationRequest({
-            newOperationRequest: {
-              contract_id: contract.id,
-              kind: OperationRequestKind.OPERATION,
-              lambda: options.lambda,
-              threshold: null,
-              proposed_signers: null,
-              ledger_hash: options.ledgerHash,
-              description: template?.name ?? null,
-            },
-          })
-        )
-      })
+  public operation(options: {
+    lambda: any
+    ledgerHash: string | null
+    templateName: string | null
+    parametersInfo: {
+      parameter: OperationTemplateParameter
+      value: OperationTemplateParameterValue
+    }[]
+  }) {
+    this.activeContract$.pipe(take(1)).subscribe((contract) => {
+      this.store$.dispatch(
+        actions.submitOperationRequest({
+          newOperationRequest: {
+            contract_id: contract.id,
+            kind: OperationRequestKind.OPERATION,
+            lambda: options.lambda,
+            threshold: null,
+            proposed_signers: null,
+            ledger_hash: options.ledgerHash,
+            description: this.operationDescription(
+              options.templateName,
+              options.parametersInfo
+            ),
+          },
+        })
+      )
+    })
+  }
+
+  private operationDescription(
+    templateName: string | null,
+    parametersInfo: {
+      parameter: OperationTemplateParameter
+      value: OperationTemplateParameterValue
+    }[]
+  ): string | null {
+    const parametersDescription = parametersInfo.reduce((current, next) => {
+      return (
+        current +
+        `${current.length > 0 ? '\n' : ''}${this.parameterDescription(
+          next.parameter,
+          next.value
+        )}`
+      )
+    }, '')
+    return `${templateName ? templateName : '\n'}\n${parametersDescription}`
+  }
+
+  private parameterDescription(
+    parameter: OperationTemplateParameter,
+    value: OperationTemplateParameterValue
+  ): string {
+    switch (parameter.parameter_value_type) {
+      case OperationTemplateParameterType.BYTES:
+      case OperationTemplateParameterType.STRING:
+      case OperationTemplateParameterType.ADDRESS:
+        return `${parameter.name}:\n${this.shorten.transform(
+          value.parameter_value
+        )}`
+      case OperationTemplateParameterType.NUMBER:
+        return `${parameter.name}:\n${convertBigNumberToAmount(
+          new BigNumber(value.parameter_value),
+          parameter.decimals ?? 0
+        )}`
+      default:
+        return `${parameter.name}:\n${value.parameter_value}`
+    }
   }
 
   public transfer(options: { amount: BigNumber; receivingAddress: string }) {
