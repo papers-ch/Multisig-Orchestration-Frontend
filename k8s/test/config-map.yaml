@@ -1,5 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cat-test-__CI_PROJECT_NAME__-config-map
-  namespace: cat-__NAMESPACE_NAME__

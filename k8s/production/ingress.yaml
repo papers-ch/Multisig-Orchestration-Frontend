@@ -1,37 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: cat-main-__CI_PROJECT_NAME__
-  namespace: cat-__NAMESPACE_NAME__
+  name: __PROJECT_NAME__
+  namespace: __NAMESPACE_NAME__
   annotations:
     kubernetes.io/ingress.class: 'nginx'
     cert-manager.io/cluster-issuer: 'letsencrypt-prod'
 spec:
   tls:
     - hosts:
-        - cat-main-__CI_PROJECT_NAME__.prod.gke.papers.tech
-      secretName: cat-main-__CI_PROJECT_NAME__-prod-tls
-    - hosts:
-        - cat-main.foundry.airgap.it
-      secretName: cat-main-foundry-__CI_PROJECT_NAME__-prod-tls
+        - __PROJECT_NAME__.prod.gke.papers.tech
+      secretName: __PROJECT_NAME__-prod-tls
   rules:
-    - host: cat-main-__CI_PROJECT_NAME__.prod.gke.papers.tech
+    - host: __PROJECT_NAME__.prod.gke.papers.tech
       http:
         paths:
           - pathType: Prefix
             path: /
             backend:
               service:
-                name: cat-main-__CI_PROJECT_NAME__-service
-                port:
-                  number: 80
-    - host: cat-main.foundry.airgap.it
-      http:
-        paths:
-          - pathType: Prefix
-            path: /
-            backend:
-              service:
-                name: cat-main-__CI_PROJECT_NAME__-service
+                name: __PROJECT_NAME__-service
                 port:
                   number: 80

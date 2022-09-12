@@ -4,6 +4,22 @@
       <div class="card" *ngIf="activeContract$ | async as activeContract">
         <div class="card-body">
           <h4 class="text-primary pb-4">
+            <strong>Multisig Contract Address</strong>
+          </h4>
+          <div class="row align-items-center pb-4">
+            <div class="col">
+              <h6 class="m-0">
+                <p>
+                  {{ activeContract.multisig_address }}
+                </p>
+              </h6>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mt-5" *ngIf="activeContract$ | async as activeContract">
+        <div class="card-body">
+          <h4 class="text-primary pb-4">
             <strong>Gatekeepers</strong>
           </h4>
           <ng-container *ngIf="gatekeepers$ | async as gatekeepers">

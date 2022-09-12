@@ -3,10 +3,9 @@ include:
     file: '/.base-gitlab-ci.yml'
 
 variables:
-  NAMESPACE: multisig-orchestration
-  TEST_TAG: multisig_orchestration_frontend_test_$CI_COMMIT_SHA
-  GOOGLE_TAG_TEST: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/test-$CI_PROJECT_NAME:$CI_COMMIT_SHA
-  GOOGLE_TAG_LATEST_TEST: eu.gcr.io/papers-kubernetes/$CI_PROJECT_NAMESPACE/test-$CI_PROJECT_NAME:latest
+  NAMESPACE: youves-foundry
+  PROJECT_NAME: $NAMESPACE-frontend
+  TEST_TAG: $PROJECT_NAME:test_$CI_COMMIT_SHA
 
 stages:
   - build
@@ -77,21 +76,6 @@ publish-dev:
     name: development
     action: prepare
 
-publish-test:
-  stage: publish
-  needs: ['build-serve-dev']
-  extends: .publish-prod
-  script:
-    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_TEST
-    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST_TEST
-    - docker push $GOOGLE_TAG_TEST
-    - docker push $GOOGLE_TAG_LATEST_TEST
-  only:
-    - develop
-  environment:
-    name: development
-    action: prepare
-
 publish-prod:
   stage: publish
   needs: ['build-serve-prod']
@@ -108,7 +92,7 @@ publish-prod:
 .base_deployment:
   script:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
-    - find k8s -type f -name \*.yaml -exec sed -i "s|__CI_PROJECT_NAME__|"$CI_PROJECT_NAME"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__PROJECT_NAME__|"$PROJECT_NAME"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$IMAGE_TAG"|g" {} +
 
     # ensure namespace is applied before the other kubernetes entities
@@ -129,20 +113,6 @@ k8s-deploy-development:
     - develop
   environment:
     name: development
-
-k8s-deploy-test:
-  stage: deploy
-  when: manual
-  needs: ['publish-test']
-  extends: .run_prod
-  variables:
-    IMAGE_TAG: $GOOGLE_TAG_TEST
-  script:
-    - !reference [.base_deployment, script]
-  only:
-    - develop
-  environment:
-    name: test
 
 k8s-deploy-production:
   stage: deploy
