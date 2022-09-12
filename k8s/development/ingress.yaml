@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: __CI_PROJECT_NAME__
+  name: __PROJECT_NAME__
   namespace: __NAMESPACE_NAME__
   annotations:
     kubernetes.io/ingress.class: 'nginx'
@@ -9,16 +9,16 @@ metadata:
 spec:
   tls:
     - hosts:
-        - __CI_PROJECT_NAME__.dev.gke.papers.tech
-      secretName: __CI_PROJECT_NAME__-dev-tls
+        - __PROJECT_NAME__.dev.gke.papers.tech
+      secretName: __PROJECT_NAME__-dev-tls
   rules:
-    - host: __CI_PROJECT_NAME__.dev.gke.papers.tech
+    - host: __PROJECT_NAME__.dev.gke.papers.tech
       http:
         paths:
           - pathType: Prefix
             path: /
             backend:
               service:
-                name: __CI_PROJECT_NAME__-service
+                name: __PROJECT_NAME__-service
                 port:
                   number: 80

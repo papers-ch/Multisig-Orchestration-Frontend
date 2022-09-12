@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cat-main-__CI_PROJECT_NAME__
-  namespace: cat-__NAMESPACE_NAME__
+  name: youves-__PROJECT_NAME__
+  namespace: youves-__NAMESPACE_NAME__
   labels:
-    app: cat-main-__CI_PROJECT_NAME__
+    app: youves-__PROJECT_NAME__
 spec:
   selector:
     matchLabels:
-      app: cat-main-__CI_PROJECT_NAME__
+      app: youves-__PROJECT_NAME__
   replicas: 1
   revisionHistoryLimit: 3
   strategy:
@@ -18,17 +18,17 @@ spec:
   template:
     metadata:
       labels:
-        app: cat-main-__CI_PROJECT_NAME__
+        app: youves-__PROJECT_NAME__
     spec:
       containers:
-        - name: cat-main-__CI_PROJECT_NAME__
+        - name: youves-__PROJECT_NAME__
           image: __TO_BE_REPLACED_BY_IMAGE_TAG__
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: cat-main-__CI_PROJECT_NAME__-config-map
+                name: youves-__PROJECT_NAME__-config-map
             # - secretRef:
-            #     name: cat-main-__CI_PROJECT_NAME__-secret
+            #     name: youves-__PROJECT_NAME__-secret
           ports:
             - containerPort: 80
           readinessProbe:

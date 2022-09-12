@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: cat-__NAMESPACE_NAME__
+  name: youves-__NAMESPACE_NAME__
