@@ -1,24 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: youves-__PROJECT_NAME__
-  namespace: youves-__NAMESPACE_NAME__
+  name: __PROJECT_NAME__
+  namespace: __NAMESPACE_NAME__
   annotations:
     kubernetes.io/ingress.class: 'nginx'
     cert-manager.io/cluster-issuer: 'letsencrypt-prod'
 spec:
   tls:
     - hosts:
-        - youves-__PROJECT_NAME__.prod.gke.papers.tech
-      secretName: youves-__PROJECT_NAME__-prod-tls
+        - __PROJECT_NAME__.prod.gke.papers.tech
+      secretName: __PROJECT_NAME__-prod-tls
   rules:
-    - host: youves-__PROJECT_NAME__.prod.gke.papers.tech
+    - host: __PROJECT_NAME__.prod.gke.papers.tech
       http:
         paths:
           - pathType: Prefix
             path: /
             backend:
               service:
-                name: youves-__PROJECT_NAME__-service
+                name: __PROJECT_NAME__-service
                 port:
                   number: 80
