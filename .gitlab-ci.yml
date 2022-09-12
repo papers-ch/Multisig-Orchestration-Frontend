@@ -3,9 +3,9 @@ include:
     file: '/.base-gitlab-ci.yml'
 
 variables:
-  NAMESPACE: foundry
+  NAMESPACE: youves-foundry
   PROJECT_NAME: $NAMESPACE-frontend
-  TEST_TAG: multisig_orchestration_frontend_test_$CI_COMMIT_SHA
+  TEST_TAG: $PROJECT_NAME:test_$CI_COMMIT_SHA
 
 stages:
   - build
