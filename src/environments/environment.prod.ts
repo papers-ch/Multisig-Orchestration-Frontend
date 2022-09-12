@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  backendUrl: 'https://cat-main-backend.foundry.airgap.it',
+  backendUrl: 'https://youves-foundry-backend.prod.gke.papers.tech',
 }
