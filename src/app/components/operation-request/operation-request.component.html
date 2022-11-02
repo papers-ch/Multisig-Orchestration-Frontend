@@ -141,7 +141,10 @@
       </div>
       <div class="col pb-1">
         <button
-          *ngIf="operationRequest.state === 'open' && (isSigner$ | async)"
+          *ngIf="
+            operationRequest.state === 'open' &&
+            ((isSigner$ | async) || (isGatekeeper$ | async))
+          "
           type="button"
           class="btn btn-primary btn-block"
           (click)="openModal(true)"
