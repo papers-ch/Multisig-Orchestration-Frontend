@@ -1296,4 +1296,32 @@ export class AppEffects {
       map((value) => actions.handleHttpErrorResponse(value))
     )
   )
+
+  renameOperationTemplate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.renameOperationTemplate),
+      switchMap(({ template, name }) =>
+        this.apiService.updateOperationTemplateName(template.id, name).pipe(
+          map(() => actions.renameOperationTemplateSucceeded({ template })),
+          catchError((errorResponse) =>
+            of(actions.renameOperationTemplateFailed({ errorResponse }))
+          )
+        )
+      )
+    )
+  )
+
+  renameOperationTemplateSucceeded$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.renameOperationTemplateSucceeded),
+      map(() => actions.loadOperationTemplates())
+    )
+  )
+
+  renameOperationTemplateFailed$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.renameOperationTemplateFailed),
+      map((value) => actions.handleHttpErrorResponse(value))
+    )
+  )
 }

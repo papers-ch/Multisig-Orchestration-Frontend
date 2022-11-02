@@ -35,6 +35,7 @@ import { UploadSignatureComponent } from './components/upload-signature/upload-s
 import { TokenSelectorComponent } from './components/token-selector/token-selector.component'
 import { OperationFormComponent } from './components/operation-form/operation-form.component'
 import { SettingsTemplateComponent } from './components/settings-template/settings-template.component'
+import { RenameTemplateModalComponent } from './components/rename-template-modal/rename-template-modal.component'
 
 @NgModule({
   declarations: [
@@ -55,6 +56,7 @@ import { SettingsTemplateComponent } from './components/settings-template/settin
     TokenSelectorComponent,
     OperationFormComponent,
     SettingsTemplateComponent,
+    RenameTemplateModalComponent,
   ],
   imports: [
     AlertModule.forRoot(),
