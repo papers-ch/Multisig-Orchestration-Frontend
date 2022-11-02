@@ -238,6 +238,19 @@ export class ApiService {
     )
   }
 
+  updateOperationTemplateName(
+    operationTemplateId: string,
+    name: string
+  ): Observable<OperationTemplate> {
+    return this.http.patch<OperationTemplate>(
+      this.getUrl(
+        `${ApiService.operationTemplatesPath}/${operationTemplateId}`
+      ),
+      { name },
+      { withCredentials: true }
+    )
+  }
+
   getLambda(
     operationTemplateId: string,
     parameterValues: OperationTemplateParameterValue[]

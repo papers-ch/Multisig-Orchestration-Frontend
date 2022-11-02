@@ -15,6 +15,7 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms'
+import { BsModalService } from 'ngx-bootstrap/modal'
 import { Subscription } from 'rxjs'
 import { Contract } from 'src/app/services/api/interfaces/contract'
 import {
@@ -23,6 +24,7 @@ import {
   OperationTemplate,
   OperationTemplateParameterType,
 } from 'src/app/services/api/interfaces/operationTemplate'
+import { RenameTemplateModalComponent } from '../rename-template-modal/rename-template-modal.component'
 
 @Component({
   selector: 'app-settings-template',
@@ -64,7 +66,10 @@ export class SettingsTemplateComponent implements OnInit, OnChanges, OnDestroy {
 
   private subscriptions: Subscription[] = []
 
-  constructor(private readonly formBuilder: FormBuilder) {
+  constructor(
+    private readonly formBuilder: FormBuilder,
+    private readonly modalService: BsModalService
+  ) {
     this.formGroup = formBuilder.group({
       templateSelectionControl: formBuilder.control(null),
       lambdaTemplateControl: formBuilder.control(null, [Validators.required]),
@@ -138,5 +143,14 @@ export class SettingsTemplateComponent implements OnInit, OnChanges, OnDestroy {
     if (this.selectedTemplate) {
       this.onRemoveTemplate.emit(this.selectedTemplate)
     }
+  }
+
+  public renameTemplate() {
+    this.modalService.show(RenameTemplateModalComponent, {
+      class: 'modal-lg',
+      initialState: {
+        operationTemplate: this.selectedTemplate,
+      },
+    })
   }
 }

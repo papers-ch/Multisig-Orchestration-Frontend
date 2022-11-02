@@ -237,6 +237,7 @@ export class OperationFormComponent implements OnInit, OnChanges, OnDestroy {
           )
         )
       })
+      this.parametersControl.updateValueAndValidity()
     } else {
       this.lambdaControl.enable()
       this.parametersControl.controls = []

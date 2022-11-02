@@ -1,0 +1,48 @@
+<div class="modal-header">
+  <h4 class="modal-title pull-left">Confirm Deletion</h4>
+  <button
+    type="button"
+    class="close pull-right"
+    aria-label="Close"
+    (click)="bsModalRef.hide()"
+  >
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+  <div class="pt-3">
+    <div class="mb-3">
+      <label class="d-block m-0">Name</label>
+    </div>
+    <div class="input-group mb-3">
+      <input
+        [formControl]="templateNameControl"
+        type="text"
+        class="form-control"
+        placeholder="Template name"
+        aria-label="name"
+      />
+    </div>
+    <div class="row justify-content-between">
+      <div class="col">
+        <button
+          type="button"
+          class="btn btn-block"
+          (click)="rename(); bsModalRef.hide()"
+          [disabled]="formGroup.invalid"
+        >
+          Rename Operation Template
+        </button>
+      </div>
+      <div class="col">
+        <button
+          type="button"
+          class="btn btn-primary btn-block"
+          (click)="bsModalRef.hide()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
