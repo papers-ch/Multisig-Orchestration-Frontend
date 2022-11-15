@@ -45,13 +45,22 @@
           </div>
         </div>
       </ng-container>
-      <button
-        (click)="removeTemplate()"
-        type="button"
-        class="btn btn-primary btn-block mt-3"
-      >
-        Delete Template
-      </button>
+      <div class="row">
+        <button
+          (click)="renameTemplate()"
+          type="button"
+          class="col btn btn-primary btn-block m-3"
+        >
+          Rename Template
+        </button>
+        <button
+          (click)="removeTemplate()"
+          type="button"
+          class="col btn btn-danger btn-block m-3"
+        >
+          Delete Template
+        </button>
+      </div>
     </ng-container>
     <ng-container *ngIf="selectedTemplate === undefined">
       <div class="mb-3">

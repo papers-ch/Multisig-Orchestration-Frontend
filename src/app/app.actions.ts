@@ -559,3 +559,16 @@ export const deleteOperationTemplateFailed = createAction(
   `[${featureName}] Delete Operation Template Failed`,
   props<{ errorResponse: HttpErrorResponse }>()
 )
+
+export const renameOperationTemplate = createAction(
+  `[${featureName}] Rename Operation Template`,
+  props<{ template: OperationTemplate; name: string }>()
+)
+export const renameOperationTemplateSucceeded = createAction(
+  `[${featureName}] Rename Operation Template Succeeded`,
+  props<{ template: OperationTemplate }>()
+)
+export const renameOperationTemplateFailed = createAction(
+  `[${featureName}] Rename Operation Template Failed`,
+  props<{ errorResponse: HttpErrorResponse }>()
+)
