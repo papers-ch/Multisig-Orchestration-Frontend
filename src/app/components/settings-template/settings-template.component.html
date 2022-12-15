@@ -27,6 +27,10 @@
           ></textarea>
         </div>
       </div>
+      <div class="mb-3">
+        <label>Template Hash</label>
+        <p>{{ selectedTemplate.template_hash }}</p>
+      </div>
       <ng-container *ngFor="let parameter of selectedTemplate.parameters">
         <div class="row py-3 align-items-center">
           <div class="col">

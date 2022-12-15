@@ -385,6 +385,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
           kind: OperationRequestKind.CHANGE_KEYS,
           contract_id: contract.id,
           lambda: null,
+          operation_template_id: null,
+          operation_template_parameter_values: null,
           threshold,
           proposed_signers: proposedSigners.sort(),
           ledger_hash: this.ledgerHash,

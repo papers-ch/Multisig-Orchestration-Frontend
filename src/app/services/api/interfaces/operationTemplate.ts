@@ -4,6 +4,7 @@ export interface OperationTemplate {
   updated_at: string
   contract_id: string
   template: any
+  template_hash: string | null
   name: string
   parameters: OperationTemplateParameter[]
 }

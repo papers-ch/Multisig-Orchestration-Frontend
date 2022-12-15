@@ -1,4 +1,5 @@
 import { OperationApproval } from './operationApproval'
+import { OperationTemplateParameterValue } from './operationTemplate'
 import { User } from './user'
 
 export enum OperationRequestKind {
@@ -18,7 +19,7 @@ export interface OperationRequest {
   updated_at: string
   user: User
   contract_id: string
-  lambda: any | null
+  lambda: any
   threshold: number | null
   proposed_signers: User[] | null
   kind: OperationRequestKind
@@ -32,6 +33,8 @@ export interface OperationRequest {
 export interface NewOperationRequest {
   contract_id: string
   lambda: any | null
+  operation_template_id: string | null
+  operation_template_parameter_values: OperationTemplateParameterValue[] | null
   threshold: number | null
   proposed_signers: string[] | null
   kind: OperationRequestKind
