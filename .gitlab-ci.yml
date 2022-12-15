@@ -200,7 +200,5 @@ k8s-deploy-cat-main:
     IMAGE_TAG: $GOOGLE_TAG
   script:
     - !reference [.base_deployment, script]
-  only:
-    - develop
   environment:
     name: cat-main
