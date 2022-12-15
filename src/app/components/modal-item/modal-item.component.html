@@ -19,11 +19,21 @@
         <button class="btn btn-link btn-block" accordion-heading type="button">
           <div class="pull-left float-left"><strong>Lambda</strong></div>
         </button>
-        <textarea
-          type="text"
-          [value]="operationRequest.lambda | json"
-          [disabled]="true"
-        ></textarea>
+        <div>
+          <ng-container *ngIf="operationRequest.template_hash !== null">
+            <h5 class="mb-2">Template Hash</h5>
+            <p>{{ operationRequest.template_hash }}</p>
+          </ng-container>
+          <ng-container *ngIf="addressesInLambda.length > 0">
+            <h5 class="mb-2">Tezos addresses inside the lambda</h5>
+            <p *ngFor="let address of addressesInLambda">{{ address }}</p>
+          </ng-container>
+          <textarea
+            type="text"
+            [value]="operationRequest.lambda | json"
+            [disabled]="true"
+          ></textarea>
+        </div>
       </accordion-group>
     </accordion>
   </ng-container>
