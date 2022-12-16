@@ -3,9 +3,7 @@ include:
     file: '/.base-gitlab-ci.yml'
 
 variables:
-  NAMESPACE: youves-foundry
-  PROJECT_NAME: $NAMESPACE-frontend
-  TEST_TAG: $PROJECT_NAME:test_$CI_COMMIT_SHA
+  TEST_TAG: $CI_PROJECT_NAME:test_$CI_COMMIT_SHA
 
 stages:
   - build
@@ -39,71 +37,124 @@ build:
 #       - lcov.info
 #       - lintReport.json
 
-.base_build_serve:
+.base_build:
   script:
     - docker build --build-arg RUN_ENV=$CI_ENVIRONMENT_NAME -t $GOOGLE_TAG-$CI_ENVIRONMENT_NAME .
 
-build-serve-dev:
+build-youves-dev:
   stage: build_serve
   script:
-    - !reference [.base_build_serve, script]
+    - !reference [.base_build, script]
   only:
     - develop
   environment:
-    name: development
+    name: youves-dev
 
-build-serve-prod:
+build-cat-test:
   stage: build_serve
   script:
-    - !reference [.base_build_serve, script]
+    - !reference [.base_build, script]
+  only:
+    - develop
+  environment:
+    name: cat-test
+
+build-youves-prod:
+  stage: build_serve
+  script:
+    - !reference [.base_build, script]
   only:
     - main
   environment:
-    name: production
+    name: youves-prod
 
-publish-dev:
-  stage: publish
-  needs: ['build-serve-dev']
-  extends: .publish-dev
+build-cat-main:
+  stage: build_serve
   script:
-    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_DEV
-    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST_DEV
-    - docker push $GOOGLE_TAG_DEV
-    - docker push $GOOGLE_TAG_LATEST_DEV
+    - !reference [.base_build, script]
+  only:
+    - main
+  environment:
+    name: cat-main
+
+.base_publish:
+  script:
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $TAG-$CI_ENVIRONMENT_NAME
+    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $TAG_LATEST-$CI_ENVIRONMENT_NAME
+    - docker push $TAG-$CI_ENVIRONMENT_NAME
+    - docker push $TAG_LATEST-$CI_ENVIRONMENT_NAME
+
+publish-youves-dev:
+  stage: publish
+  needs: ['build-youves-dev']
+  extends: .publish-dev
+  variables:
+    TAG: $GOOGLE_TAG_DEV
+    TAG_LATEST: $GOOGLE_TAG_LATEST_DEV
+  script:
+    - !reference [.base_publish, script]
   only:
     - develop
   environment:
-    name: development
+    name: youves-dev
     action: prepare
 
-publish-prod:
+publish-cat-test:
   stage: publish
-  needs: ['build-serve-prod']
+  needs: ['build-cat-test']
   extends: .publish-prod
+  variables:
+    TAG: $GOOGLE_TAG
+    TAG_LATEST: $GOOGLE_TAG_LATEST
   script:
-    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG
-    - docker tag $GOOGLE_TAG-$CI_ENVIRONMENT_NAME $GOOGLE_TAG_LATEST
-    - docker push $GOOGLE_TAG
-    - docker push $GOOGLE_TAG_LATEST
+    - !reference [.base_publish, script]
+  only:
+    - develop
   environment:
-    name: production
+    name: cat-test
+    action: prepare
+
+publish-youves-prod:
+  stage: publish
+  needs: ['build-youves-prod']
+  extends: .publish-prod
+  variables:
+    TAG: $GOOGLE_TAG
+    TAG_LATEST: $GOOGLE_TAG_LATEST
+  script:
+    - !reference [.base_publish, script]
+  environment:
+    name: youves-prod
+    action: prepare
+
+publish-cat-main:
+  stage: publish
+  needs: ['build-cat-main']
+  extends: .publish-prod
+  variables:
+    TAG: $GOOGLE_TAG
+    TAG_LATEST: $GOOGLE_TAG_LATEST
+  script:
+    - !reference [.base_publish, script]
+  environment:
+    name: cat-main
     action: prepare
 
 .base_deployment:
   script:
     - find k8s -type f -name \*.yaml -exec sed -i "s|__NAMESPACE_NAME__|"$NAMESPACE"|g" {} +
     - find k8s -type f -name \*.yaml -exec sed -i "s|__PROJECT_NAME__|"$PROJECT_NAME"|g" {} +
-    - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$IMAGE_TAG"|g" {} +
+    - find k8s -type f -name \*.yaml -exec sed -i "s|__TO_BE_REPLACED_BY_IMAGE_TAG__|"$IMAGE_TAG-$CI_ENVIRONMENT_NAME"|g" {} +
 
     # ensure namespace is applied before the other kubernetes entities
     - kubectl apply -f k8s/common/namespace.yaml
     - kubectl apply -f k8s/$CI_ENVIRONMENT_NAME/ --recursive
     - kubectl apply -f k8s/common/ --recursive
 
-k8s-deploy-development:
+k8s-deploy-youves-dev:
   stage: deploy
   when: manual
-  needs: ['publish-dev']
+  needs: ['publish-youves-dev']
   extends: .run_dev
   variables:
     IMAGE_TAG: $GOOGLE_TAG_DEV
@@ -112,16 +163,42 @@ k8s-deploy-development:
   only:
     - develop
   environment:
-    name: development
+    name: youves-dev
 
-k8s-deploy-production:
+k8s-deploy-cat-test:
   stage: deploy
   when: manual
-  needs: ['publish-prod']
+  needs: ['publish-cat-test']
+  extends: .run_prod
+  variables:
+    IMAGE_TAG: $GOOGLE_TAG
+  script:
+    - !reference [.base_deployment, script]
+  only:
+    - develop
+  environment:
+    name: cat-test
+
+k8s-deploy-youves-prod:
+  stage: deploy
+  when: manual
+  needs: ['publish-youves-prod']
   extends: .run_prod
   variables:
     IMAGE_TAG: $GOOGLE_TAG
   script:
     - !reference [.base_deployment, script]
   environment:
-    name: production
+    name: youves-prod
+
+k8s-deploy-cat-main:
+  stage: deploy
+  when: manual
+  needs: ['publish-cat-main']
+  extends: .run_prod
+  variables:
+    IMAGE_TAG: $GOOGLE_TAG
+  script:
+    - !reference [.base_deployment, script]
+  environment:
+    name: cat-main

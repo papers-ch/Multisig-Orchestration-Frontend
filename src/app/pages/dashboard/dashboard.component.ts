@@ -176,9 +176,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   public operation(options: {
-    lambda: any
+    lambda: any | null
     ledgerHash: string | null
-    templateName: string | null
+    template: OperationTemplate | null
     parametersInfo: {
       parameter: OperationTemplateParameter
       value: OperationTemplateParameterValue
@@ -191,11 +191,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
             contract_id: contract.id,
             kind: OperationRequestKind.OPERATION,
             lambda: options.lambda,
+            operation_template_id: options.template?.id ?? null,
+            operation_template_parameter_values: options.parametersInfo.map(
+              (value) => value.value
+            ),
             threshold: null,
             proposed_signers: null,
             ledger_hash: options.ledgerHash,
             description: this.operationDescription(
-              options.templateName,
+              options.template?.name ?? null,
               options.parametersInfo
             ),
           },

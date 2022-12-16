@@ -11,7 +11,7 @@
       </option>
     </select>
   </div>
-  <div class="my-5">
+  <div class="my-3">
     <!-- <ng-container *ngIf="selectedTemplate === undefined">
       <div class="mb-3">
         <label>Enter Michelson Lambda reprepsenting the operation</label>
@@ -36,6 +36,8 @@
     </ng-container> -->
     <ng-container *ngIf="selectedTemplate !== undefined">
       <div class="mb-3">
+        <label>Template Hash</label>
+        <p>{{ selectedTemplate.template_hash }}</p>
         <label>Parameters</label>
         <ng-container
           *ngFor="let parameter of selectedTemplate.parameters; let idx = index"
