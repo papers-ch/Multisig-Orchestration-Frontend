@@ -12,8 +12,8 @@ spec:
         - __PROJECT_NAME__.prod.gke.papers.tech
       secretName: __PROJECT_NAME__-prod-tls
     - hosts:
-        - cat-test.foundry.airgap.it
-      secretName: cat-test-foundry-multisig-orchestration-frontend-prod-tls
+        - cat-main.foundry.airgap.it
+      secretName: cat-main-foundry-multisig-orchestration-frontend-prod-tls
   rules:
     - host: __PROJECT_NAME__.prod.gke.papers.tech
       http:
@@ -25,7 +25,7 @@ spec:
                 name: __PROJECT_NAME__-service
                 port:
                   number: 80
-    - host: cat-test.foundry.airgap.it
+    - host: cat-main.foundry.airgap.it
       http:
         paths:
           - pathType: Prefix
