@@ -41,41 +41,23 @@ build:
   script:
     - docker build --build-arg RUN_ENV=$CI_ENVIRONMENT_NAME -t $GOOGLE_TAG-$CI_ENVIRONMENT_NAME .
 
-build-youves-dev:
+build-tzbtc-dev:
   stage: build_serve
   script:
     - !reference [.base_build, script]
   only:
     - develop
   environment:
-    name: youves-dev
+    name: tzbtc-dev
 
-build-cat-test:
-  stage: build_serve
-  script:
-    - !reference [.base_build, script]
-  only:
-    - develop
-  environment:
-    name: cat-test
-
-build-youves-prod:
+build-tzbtc-prod:
   stage: build_serve
   script:
     - !reference [.base_build, script]
   only:
     - main
   environment:
-    name: youves-prod
-
-build-cat-main:
-  stage: build_serve
-  script:
-    - !reference [.base_build, script]
-  only:
-    - main
-  environment:
-    name: cat-main
+    name: tzbtc-prod
 
 .base_publish:
   script:
@@ -84,9 +66,9 @@ build-cat-main:
     - docker push $TAG-$CI_ENVIRONMENT_NAME
     - docker push $TAG_LATEST-$CI_ENVIRONMENT_NAME
 
-publish-youves-dev:
+publish-tzbtc-dev:
   stage: publish
-  needs: ['build-youves-dev']
+  needs: ['build-tzbtc-dev']
   extends: .publish-dev
   variables:
     TAG: $GOOGLE_TAG_DEV
@@ -96,27 +78,12 @@ publish-youves-dev:
   only:
     - develop
   environment:
-    name: youves-dev
+    name: tzbtc-dev
     action: prepare
 
-publish-cat-test:
+publish-tzbtc-prod:
   stage: publish
-  needs: ['build-cat-test']
-  extends: .publish-prod
-  variables:
-    TAG: $GOOGLE_TAG
-    TAG_LATEST: $GOOGLE_TAG_LATEST
-  script:
-    - !reference [.base_publish, script]
-  only:
-    - develop
-  environment:
-    name: cat-test
-    action: prepare
-
-publish-youves-prod:
-  stage: publish
-  needs: ['build-youves-prod']
+  needs: ['build-tzbtc-prod']
   extends: .publish-prod
   variables:
     TAG: $GOOGLE_TAG
@@ -124,20 +91,7 @@ publish-youves-prod:
   script:
     - !reference [.base_publish, script]
   environment:
-    name: youves-prod
-    action: prepare
-
-publish-cat-main:
-  stage: publish
-  needs: ['build-cat-main']
-  extends: .publish-prod
-  variables:
-    TAG: $GOOGLE_TAG
-    TAG_LATEST: $GOOGLE_TAG_LATEST
-  script:
-    - !reference [.base_publish, script]
-  environment:
-    name: cat-main
+    name: tzbtc-prod
     action: prepare
 
 .base_deployment:
@@ -151,10 +105,10 @@ publish-cat-main:
     - kubectl apply -f k8s/$CI_ENVIRONMENT_NAME/ --recursive
     - kubectl apply -f k8s/common/ --recursive
 
-k8s-deploy-youves-dev:
+k8s-deploy-tzbtc-dev:
   stage: deploy
   when: manual
-  needs: ['publish-youves-dev']
+  needs: ['publish-tzbtc-dev']
   extends: .run_dev
   variables:
     IMAGE_TAG: $GOOGLE_TAG_DEV
@@ -163,42 +117,16 @@ k8s-deploy-youves-dev:
   only:
     - develop
   environment:
-    name: youves-dev
+    name: tzbtc-dev
 
-k8s-deploy-cat-test:
+k8s-deploy-tzbtc-prod:
   stage: deploy
   when: manual
-  needs: ['publish-cat-test']
-  extends: .run_prod
-  variables:
-    IMAGE_TAG: $GOOGLE_TAG
-  script:
-    - !reference [.base_deployment, script]
-  only:
-    - develop
-  environment:
-    name: cat-test
-
-k8s-deploy-youves-prod:
-  stage: deploy
-  when: manual
-  needs: ['publish-youves-prod']
+  needs: ['publish-tzbtc-prod']
   extends: .run_prod
   variables:
     IMAGE_TAG: $GOOGLE_TAG
   script:
     - !reference [.base_deployment, script]
   environment:
-    name: youves-prod
-
-k8s-deploy-cat-main:
-  stage: deploy
-  when: manual
-  needs: ['publish-cat-main']
-  extends: .run_prod
-  variables:
-    IMAGE_TAG: $GOOGLE_TAG
-  script:
-    - !reference [.base_deployment, script]
-  environment:
-    name: cat-main
+    name: tzbtc-prod
