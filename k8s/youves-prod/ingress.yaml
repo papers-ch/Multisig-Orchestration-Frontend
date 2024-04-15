@@ -10,7 +10,7 @@ spec:
   tls:
     - hosts:
         - __PROJECT_NAME__.prod.gke.papers.tech
-      secretName: __PROJECT_NAME__-prod-tls
+      secretName: __PROJECT_NAME__-tls
   rules:
     - host: __PROJECT_NAME__.prod.gke.papers.tech
       http:
